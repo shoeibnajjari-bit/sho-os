@@ -227,3 +227,29 @@ body.drawer-open{overflow:hidden}
 .task-list .task-item[hidden]{display:none!important}
 @media(max-width:560px){.task-filter-tools{grid-template-columns:1fr}.task-filter-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.task-filter-buttons button{width:100%}.task-filter-count{grid-column:auto}}
 
+/* Responsive right-side drawer: one layout across desktop, tablet and narrow phones. */
+.main-nav{width:min(360px,calc(100vw - 16px));max-width:100%;height:100vh;height:100dvh;max-height:100dvh;padding-inline:clamp(12px,3vw,20px);padding-top:calc(18px + env(safe-area-inset-top));padding-bottom:calc(18px + env(safe-area-inset-bottom));overflow-x:hidden;overscroll-behavior:contain;box-sizing:border-box}
+.main-nav>a{width:100%;min-width:0;overflow-wrap:anywhere;flex-shrink:0}
+.drawer-head{position:sticky;top:0;z-index:1;background:var(--panel);padding-top:6px}
+.drawer-close{flex:none;min-width:40px;min-height:40px}
+.drawer-backdrop{width:100%;height:100%;padding:0;cursor:pointer;touch-action:manipulation}
+@media(max-width:420px){.main-nav{width:min(320px,calc(100vw - 12px));padding-inline:12px}.main-nav>a{min-height:44px;padding:10px;font-size:13px}.drawer-head strong{font-size:17px}}
+@media(min-width:761px){.topbar{z-index:30}.main-nav{z-index:1101}.drawer-backdrop{z-index:1100}}
+@media(prefers-reduced-motion:reduce){.main-nav{transition:none}}
+/* Category management */
+.category-manager{margin:16px 0}
+.category-add-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end;margin:16px 0}
+.category-add-form label{display:grid;gap:7px;min-width:0;color:var(--muted);font-size:12px}
+.category-add-form input,.category-rename-form input{width:100%;min-width:0;max-width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--bg);color:var(--text);font:inherit}
+.category-add-form button{min-height:42px;white-space:nowrap}
+.category-list{display:grid;gap:8px}
+.category-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:9px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.category-rename-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;min-width:0}
+.category-rename-form label{display:block;min-width:0}
+.category-rename-form button{min-height:40px;padding:8px 12px}
+.category-item>form:last-child{margin:0}
+.category-item .icon-button{width:40px;height:40px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.category-manager .section-head{flex-wrap:wrap}
+@media(max-width:520px){.category-add-form{grid-template-columns:1fr}.category-add-form button{width:100%}.category-item{padding:7px}.category-rename-form{grid-template-columns:minmax(0,1fr) auto;gap:6px}.category-rename-form button{padding:7px;font-size:12px}.category-item .icon-button{width:36px;height:38px}.category-manager{padding:13px}}
+
