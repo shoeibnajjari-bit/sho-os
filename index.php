@@ -42,11 +42,30 @@ function jalaliDate(?string $iso,bool $withWeekday=false): string {
  if($days<186){$jm=1+(int)($days/31);$jd=1+$days%31;}else{$jm=7+(int)(($days-186)/30);$jd=1+(($days-186)%30);}$months=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];$out=faDigits((string)$jd).' '.$months[$jm-1].' '.faDigits((string)$jy);
  if($withWeekday){$w=['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه'];$out=$w[(int)$dt->format('w')].'، '.$out;}return$out;
 }
+function normalizePhone(string $v): ?string {
+ $v=latinDigits(trim($v));$v=preg_replace('/[\\s\\-().]/','',$v)??'';
+ if(preg_match('/^\\+98(9[0-9]{9})$/',$v,$m))$v='0'.$m[1];
+ if(preg_match('/^0098(9[0-9]{9})$/',$v,$m))$v='0'.$m[1];
+ return preg_match('/^09[0-9]{9}$/',$v)?$v:null;
+}
 function csrf(): string { if (empty($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(32)); return $_SESSION['csrf']; }
 function requireCsrf(): void { if (!hash_equals((string)($_SESSION['csrf'] ?? ''), (string)($_POST['csrf'] ?? ''))) { http_response_code(403); exit('درخواست نامعتبر است. صفحه را تازه‌سازی کن.'); } }
 function redirectHome(): never { header('Location: index.php'); exit; }
 $error = '';
 if (isset($_GET['logout'])) { $_SESSION=[]; session_destroy(); redirectHome(); }
+if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action'] ?? '')==='register') {
+  requireCsrf();
+  $displayName=trim((string)($_POST['display_name']??''));$phone=normalizePhone((string)($_POST['phone']??''));$password=(string)($_POST['password']??'');
+  if(mb_strlen($displayName)<2||mb_strlen($displayName)>100) $error='نام نمایشی باید بین ۲ تا ۱۰۰ نویسه باشد.';
+  elseif(!$phone) $error='شماره تلفن معتبر وارد کن؛ مثل ۰۹۱۲۱۲۳۴۵۶۷.';
+  elseif(strlen($password)<12) $error='رمز عبور باید حداقل ۱۲ نویسه باشد.';
+  else try {
+    $role=(int)$pdo->query('SELECT COUNT(*) FROM users')->fetchColumn()===0?'admin':'user';
+    $stmt=$pdo->prepare('INSERT INTO users(username,display_name,password_hash,role) VALUES(?,?,?,?)');
+    $stmt->execute([$phone,$displayName,password_hash($password,PASSWORD_DEFAULT),$role]);
+    session_regenerate_id(true);$_SESSION['user_id']=(int)$pdo->lastInsertId();$_SESSION['username']=$phone;csrf();redirectHome();
+  } catch(Throwable $e) {$error='ثبت‌نام انجام نشد؛ ممکن است این شماره قبلاً ثبت شده باشد.';}
+}
 if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action'] ?? '')==='login') {
   requireCsrf();
   $stmt=$pdo->prepare('SELECT id,username,password_hash FROM users WHERE username=? LIMIT 1');
@@ -56,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action'] ?? '')==='login') {
   } else $error='نام کاربری یا رمز عبور درست نیست.';
 }
 if (empty($_SESSION['user_id'])):
-?><!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#18352b"><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="assets/app.css"><title>ورود به مدار</title></head><body class="login-body"><main class="login-card"><div class="brand-mark">م</div><p class="eyebrow">سامانه مدیریت شخصی</p><h1>مدار</h1><p class="muted">مدیریت پول، کارها و مسیر زندگی</p><?php if($error): ?><div class="notice"><?=h($error)?></div><?php endif ?><form method="post"><input type="hidden" name="csrf" value="<?=h(csrf())?>"><input type="hidden" name="action" value="login"><label>نام کاربری</label><input name="username" autocomplete="username" required><label>رمز عبور</label><input type="password" name="password" autocomplete="current-password" required><button class="primary full">ورود</button></form><p class="tiny">حساب اولیه را از صفحه install.php ساخته باش.</p></main><script>if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});</script></body></html><?php exit; endif;
+?><!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#18352b"><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="assets/app.css"><title>ورود به مدار</title></head><body class="login-body"><main class="login-card"><div class="brand-mark">م</div><p class="eyebrow">سامانه مدیریت شخصی</p><h1>مدار</h1><p class="muted">مدیریت پول، کارها و مسیر زندگی</p><?php if($error): ?><div class="notice"><?=h($error)?></div><?php endif ?><form method="post"><input type="hidden" name="csrf" value="<?=h(csrf())?>"><input type="hidden" name="action" value="login"><label>شماره تلفن</label><input name="username" autocomplete="username" inputmode="tel" placeholder="۰۹۱۲۱۲۳۴۵۶۷" required><label>رمز عبور</label><input type="password" name="password" autocomplete="current-password" required><button class="primary full">ورود</button></form><p class="tiny">حساب نداری؟ <a href="?register=1">ثبت‌نام رایگان</a></p></main><script>if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});</script></body></html><?php exit; endif;
 $userId=(int)$_SESSION['user_id'];
 if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action'] ?? '')!=='login') {
   requireCsrf();
