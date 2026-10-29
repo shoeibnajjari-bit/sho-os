@@ -9,6 +9,8 @@ const fail = message => {
 };
 const index = read('index.php');
 const worker = read('sw.js');
+const appJs = read('assets/app.js');
+const schema = read('schema.sql');
 
 for (const file of ['index.php', 'assets/app.css', 'assets/app.js', 'assets/nav-settings-polish.css', 'sw.js', 'manifest.webmanifest']) {
   if (!fs.existsSync(path.join(root, file)) || fs.statSync(path.join(root, file)).size === 0) fail('Required file missing or empty: ' + file);
@@ -42,8 +44,27 @@ for (const file of ['/assets/app.css', '/assets/app.js', '/assets/nav-settings-p
 
 const backup = read('backup.php');
 const restore = read('restore.php');
+// Finance navigation must survive the drawer regrouping script.
+if (!appJs.includes("const financeMenu=menu.querySelector(':scope > details.finance-submenu')")) fail('Navigation grouping no longer preserves the finance submenu node.');
+if (!appJs.includes("addGroup('امور مالی',[financeMenu]")) fail('Finance submenu is not included in the rebuilt navigation.');
+if (appJs.includes("menu.innerHTML=''")) fail('Destructive menu rebuild detected; it can drop nested details elements.');
+if (!index.includes('meta name="csrf-token"')) fail('Authenticated page CSRF metadata missing for background backup.');
+if (!index.includes('api/daily-backup.php')) fail('Background daily backup trigger missing.');
+const expectedFinanceLabels=['نمای کلی مالی','تراکنش‌ها','سقف بودجه','اهداف پس‌انداز','مدیریت چک‌ها','کارت‌های بانکی','مدیریت دسته‌بندی‌ها','قیمت و روند بازار'];
+let lastFinanceIndex=-1;
+for(const label of expectedFinanceLabels){
+  const pos=index.indexOf(label);
+  if(pos<0)fail('Finance submenu item missing: '+label);
+  if(pos<=lastFinanceIndex)fail('Finance submenu item order is incorrect near: '+label);
+  lastFinanceIndex=pos;
+}
+if (!index.includes('assets/app.js?v=1.11')) fail('Application JS cache-buster was not updated.');
+if (!index.includes('assets/nav-settings-polish.css?v=3')) fail('Navigation CSS cache-buster was not updated.');
+
 if (!index.includes("page=categories") || !index.includes("action\" value=\"add_category")) fail('Category management route/action missing.');
-if (!index.includes('CREATE TABLE IF NOT EXISTS categories')) fail('Per-user category table migration missing.');
+if (!schema.includes('CREATE TABLE IF NOT EXISTS categories')) fail('Per-user category table missing from schema.sql.');
+if (/SHOW COLUMNS FROM users|CREATE TABLE IF NOT EXISTS login_attempts/.test(index)) fail('Schema inspection/DDL must not run in index.php on each request.');
+for (const file of ['includes/helpers.php','includes/category-sync.php','includes/actions.php','includes/page-data.php','includes/daily-backup.php','api/daily-backup.php']) if (!fs.existsSync(path.join(root,file))) fail('Extracted module missing: '+file);
 if (!index.includes('rename_category') || !index.includes('delete_category')) fail('Category rename/delete actions missing.');
 if (!backup.includes("'categories'")) fail('Manual backup must include custom categories.');
 if (!restore.includes("'categories'")) fail('Restore must handle category data.');
@@ -51,7 +72,6 @@ if (!index.includes('category-manager')) fail('Category manager UI missing.');
 if (!index.includes('class="nav-submenu finance-submenu"') || !index.includes('page=market')) fail('Finance submenu or market route missing.');
 if (!index.includes('page=transactions') || !index.includes('page=goals') || !index.includes('page=checks') || !index.includes('page=cards')) fail('Finance submenu is missing a required destination.');
 const market = read('market.php');
-const appJs = read('assets/app.js');
 for (const symbol of ['GOLD_18K_IRR', 'USD_IRR_FREE', 'USDT_IRR', 'BTC_IRR']) if (!market.includes(symbol)) fail('Market proxy missing exact symbol: ' + symbol);
 if (!market.includes('latest-toman.json')) fail('Market proxy is not using the validated current-price JSON source.');
 if (!appJs.includes('GOLD_18K_IRR.json') || !appJs.includes('BTC_USD.json') || !appJs.includes('USDT_USD.json')) fail('Yearly history chart data sources missing.');

@@ -175,71 +175,90 @@ document.addEventListener('submit',event=>{
  }
 });
 
-/* Reorganize main drawer into labeled groups + active page highlight */
+/* Group the navigation while preserving nested menus such as finance-submenu. */
 (()=>{
   const menu=document.getElementById('mainMenu');
   if(!menu||menu.dataset.grouped==='1')return;
-  const head=menu.querySelector('.drawer-head');
-  const links=[...menu.querySelectorAll(':scope > a')];
-  if(links.length<3)return;
 
-  const groups=[
-    {label:'خانه و مالی', match:href=>{
-      const h=href.replace(location.origin,'');
-      return h==='/'||h.endsWith('index.php')||h.includes('page=finance')||h.includes('page=transactions')||h.includes('page=checks')||h.includes('page=goals')||h.includes('#budget');
-    }},
-    {label:'سازماندهی', match:href=>/page=(tasks|contacts|cards)/.test(href)},
-    {label:'ابزار و محصول', match:href=>/page=market|pricing\.php/.test(href)},
-    {label:'حساب', match:href=>/page=settings/.test(href)}
-  ];
+  const head=menu.querySelector(':scope > .drawer-head');
+  const financeMenu=menu.querySelector(':scope > details.finance-submenu');
+  const directLinks=[...menu.querySelectorAll(':scope > a')];
+  const page=(new URLSearchParams(location.search)).get('page')||'home';
+  const hash=location.hash;
 
-  const used=new Set();
+  const parseTarget=a=>{
+    try{return new URL(a.getAttribute('href')||'',location.href)}catch{return null}
+  };
+  const targetPage=a=>{
+    const url=parseTarget(a);
+    return url?.searchParams.get('page')||'home';
+  };
+
+  menu.querySelectorAll('a').forEach(a=>{
+    a.classList.remove('is-active');
+    a.removeAttribute('aria-current');
+    const url=parseTarget(a);
+    if(!url)return;
+    const dest=targetPage(a);
+    const anchor=url.hash||'';
+    const active=dest===page&&(anchor?anchor===hash:!(page==='finance'&&hash==='#budget-settings'));
+    if(active){a.classList.add('is-active');a.setAttribute('aria-current','page')}
+  });
+
+  const homeLinks=directLinks.filter(a=>{
+    const url=parseTarget(a);
+    return url&&targetPage(a)==='home'&&!url.searchParams.has('register')&&!url.searchParams.has('page');
+  });
+  const organizationLinks=directLinks.filter(a=>['tasks','contacts'].includes(targetPage(a)));
+  const toolLinks=directLinks.filter(a=>{
+    const href=(a.getAttribute('href')||'').toLowerCase();
+    return href.includes('pricing.php');
+  });
+  const accountLinks=directLinks.filter(a=>targetPage(a)==='settings');
+  const known=new Set([...homeLinks,...organizationLinks,...toolLinks,...accountLinks]);
+  const otherLinks=directLinks.filter(a=>!known.has(a));
+
   const frag=document.createDocumentFragment();
   if(head)frag.appendChild(head);
-
-  const page=(new URLSearchParams(location.search)).get('page')||'home';
-  groups.forEach((g,gi)=>{
+  const addGroup=(label,nodes,options={})=>{
+    if(!nodes.length)return;
     const wrap=document.createElement('div');
-    wrap.className='nav-group'+(gi===groups.length-1?' nav-group-account':'');
+    wrap.className='nav-group'+(options.className?' '+options.className:'');
     wrap.setAttribute('role','group');
-    wrap.setAttribute('aria-label',g.label);
-    const lab=document.createElement('p');
-    lab.className='nav-group-label';
-    lab.textContent=g.label;
-    wrap.appendChild(lab);
-    links.forEach(a=>{
-      if(used.has(a))return;
-      const href=a.getAttribute('href')||'';
-      if(g.match(href)){
-        used.add(a);
-        let active=false;
-        if(page==='home'&&(href==='index.php'||href.endsWith('/index.php')||href==='/'||href.endsWith('/')))active=true;
-        if(page!=='home'&&href.includes('page='+page)&&!href.includes('#'))active=true;
-        if(active)a.classList.add('is-active');
-        wrap.appendChild(a);
-      }
-    });
-    if(wrap.querySelectorAll('a').length)frag.appendChild(wrap);
-  });
-  const rest=links.filter(a=>!used.has(a));
-  if(rest.length){
-    const wrap=document.createElement('div');
-    wrap.className='nav-group';
-    const lab=document.createElement('p');
-    lab.className='nav-group-label';
-    lab.textContent='سایر';
-    wrap.appendChild(lab);
-    rest.forEach(a=>wrap.appendChild(a));
+    wrap.setAttribute('aria-label',label);
+    if(options.showLabel!==false){
+      const lab=document.createElement('p');
+      lab.className='nav-group-label';
+      lab.textContent=label;
+      wrap.appendChild(lab);
+    }
+    nodes.forEach(node=>wrap.appendChild(node));
     frag.appendChild(wrap);
+  };
+
+  addGroup('خانه',homeLinks);
+  if(financeMenu){
+    const financePages=['finance','transactions','budgets','goals','checks','cards','categories','market'];
+    financeMenu.open=financePages.includes(page)||page==='finance'&&hash==='#budget-settings';
+    addGroup('امور مالی',[financeMenu],{showLabel:false,className:'nav-group-finance'});
   }
-  menu.innerHTML='';
-  menu.appendChild(frag);
+  addGroup('سازماندهی',organizationLinks);
+  addGroup('ابزار و محصول',toolLinks);
+  addGroup('حساب',accountLinks);
+  addGroup('سایر',otherLinks);
+
+  // Preserve any future non-link nodes rather than silently deleting them.
+  const knownNodes=new Set([head,financeMenu,...known,...otherLinks].filter(Boolean));
+  [...menu.children].forEach(node=>{
+    if(!knownNodes.has(node))frag.appendChild(node);
+  });
+  menu.replaceChildren(frag);
   menu.dataset.grouped='1';
 
   if(!document.querySelector('link[href*="nav-settings-polish.css"]')){
     const l=document.createElement('link');
     l.rel='stylesheet';
-    l.href='assets/nav-settings-polish.css?v=1';
+    l.href='assets/nav-settings-polish.css?v=3';
     document.head.appendChild(l);
   }
 })();

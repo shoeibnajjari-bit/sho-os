@@ -1,0 +1,56 @@
+name: Validate application modules
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: PHP, JavaScript and smoke checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_mysql
+          coverage: none
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate PHP syntax
+        run: |
+          php -l index.php
+          php -l includes/helpers.php
+          php -l includes/category-sync.php
+          php -l includes/actions.php
+          php -l includes/page-data.php
+          php -l includes/daily-backup.php
+          php -l api/daily-backup.php
+          php -l export.php
+          php -l backup.php
+          php -l restore.php
+          php -l market.php
+          php -l pricing.php
+          php -l install.php
+          php -l config.example.php
+
+      - name: Validate JavaScript and PWA metadata
+        run: |
+          node --check assets/app.js
+          node --check sw.js
+          node scripts/smoke-check.mjs
+          python -m json.tool manifest.webmanifest > /dev/null
