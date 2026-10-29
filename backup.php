@@ -14,7 +14,7 @@ try{$pdo=new PDO('mysql:host='.$config['db_host'].';dbname='.$config['db_name'].
 $userId=(int)$_SESSION['user_id'];
 $stmt=$pdo->prepare('SELECT username,display_name,created_at FROM users WHERE id=? AND is_active=1');$stmt->execute([$userId]);$user=$stmt->fetch();if(!$user){http_response_code(403);exit('حساب فعال پیدا نشد.');}
 $data=['format'=>'madar-backup-v1','exported_at'=>date(DATE_ATOM),'account'=>['username'=>$user['username'],'display_name'=>$user['display_name'],'created_at'=>$user['created_at']],'tables'=>[]];
-foreach(['transactions','tasks','budgets','contacts','bank_cards','savings_goals','checks'] as $table){
+foreach(['transactions','tasks','budgets','contacts','bank_cards','savings_goals','checks','categories'] as $table){
  try{$q=$pdo->prepare("SELECT * FROM {$table} WHERE user_id=? ORDER BY id ASC");$q->execute([$userId]);$data['tables'][$table]=$q->fetchAll();}
  catch(Throwable $e){error_log('Madar backup export failed for table '.$table.': '.$e->getMessage());http_response_code(500);exit('تهیهٔ نسخهٔ پشتیبان کامل نشد؛ هیچ فایل ناقصی ارائه نمی‌شود. لطفاً با پشتیبانی فنی تماس بگیر.');}
 }
