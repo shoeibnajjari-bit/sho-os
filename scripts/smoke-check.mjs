@@ -10,6 +10,7 @@ const fail = message => {
 const index = read('index.php');
 const worker = read('sw.js');
 const appJs = read('assets/app.js');
+const appCss = read('assets/app.css');
 const schema = read('schema.sql');
 
 for (const file of ['index.php', 'assets/app.css', 'assets/app.js', 'assets/nav-settings-polish.css', 'assets/analytics.css', 'sw.js', 'manifest.webmanifest']) {
@@ -42,6 +43,16 @@ for (const file of ['/assets/app.css', '/assets/app.js', '/assets/nav-settings-p
   if (!allowlist.includes(file)) fail('Static asset missing from service-worker allowlist: ' + file);
 }
 
+if (worker.indexOf('cache.match(cacheKey)') === -1 || worker.indexOf('cache.match(cacheKey)') > worker.indexOf('fetch(request')) fail('Static assets should use cache-first delivery.');
+if (/fonts\.googleapis\.com|fonts\.gstatic\.com/i.test(appCss)) fail('App CSS must not block rendering on remote font services.');
+const mobileNavStart = index.indexOf('<nav class="mobile-nav"');
+const mobileNavEnd = index.indexOf('</nav>', mobileNavStart);
+const mobileNav = mobileNavStart >= 0 && mobileNavEnd > mobileNavStart ? index.slice(mobileNavStart, mobileNavEnd) : '';
+if (!mobileNav) fail('Mobile footer navigation is missing.');
+if (mobileNav.includes('page=finance')) fail('Finance card shortcut should be replaced by the dedicated analytics destination.');
+for (const href of ['href="index.php"', 'href="index.php?page=analytics"', 'href="index.php?page=tasks"', 'href="index.php?page=settings"']) if (!mobileNav.includes(href)) fail('Mobile footer navigation missing: ' + href);
+if ((mobileNav.match(/<a\b/g)||[]).length !== 4) fail('Mobile footer should contain exactly four shortcuts.');
+
 const backup = read('backup.php');
 const restore = read('restore.php');
 // Finance navigation must survive the drawer regrouping script.
@@ -58,6 +69,8 @@ for(const label of expectedFinanceLabels){
   if(pos<=lastFinanceIndex)fail('Finance submenu item order is incorrect near: '+label);
   lastFinanceIndex=pos;
 }
+if (!index.includes('assets/app.css?v=1.16')) fail('App CSS cache-buster was not updated.');
+if (!index.includes('requestIdleCallback')) fail('Daily backup should be deferred until the page is idle.');
 if (!index.includes('assets/app.js?v=1.11')) fail('Application JS cache-buster was not updated.');
 if (!index.includes("'analytics'")) fail('Analytics route is not allowlisted.');
 if (!index.includes('index.php?page=analytics')) fail('Analytics navigation entry missing.');
@@ -85,4 +98,4 @@ if (!appJs.includes('marketHistoryGrid')) fail('Market history chart UI missing.
 
 if (!index.includes("!in_array($page,['home','analytics','finance','categories'")) fail('Category manager route is not allowlisted.');
 if (process.exitCode) process.exit(process.exitCode);
-console.log('Smoke checks passed: required files, local asset references, no remote bootstrap, and safe/version-aligned PWA cache.');
+console.log('Smoke checks passed: required files, four-item mobile navigation, non-blocking fonts, cache-first static assets, and version-aligned PWA cache.');

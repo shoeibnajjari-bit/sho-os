@@ -1,4 +1,4 @@
-const CACHE='madar-static-v31';
+const CACHE='madar-static-v32';
 const STATIC_PATHS=new Set([
   '/assets/app.css',
   '/assets/app.js',
@@ -28,18 +28,16 @@ self.addEventListener('fetch',event=>{
   // Only static assets are eligible. HTML, PHP, and all user/financial data bypass SW.
   if(!STATIC_PATHS.has(url.pathname))return;
 
+  const cacheKey=new URL(url.pathname,self.location.origin).href;
   event.respondWith((async()=>{
     const cache=await caches.open(CACHE);
-    const cacheKey=new URL(url.pathname,self.location.origin).href;
-    try {
-      // Network-first so CSS/JS fixes become visible immediately after deployment.
-      const response=await fetch(request,{cache:'no-store'});
-      if(response.ok&&response.type==='basic')await cache.put(cacheKey,response.clone());
-      return response;
-    } catch(error) {
-      const cached=await cache.match(cacheKey);
-      if(cached)return cached;
-      throw error;
-    }
+    const cached=await cache.match(cacheKey);
+    if(cached)return cached;
+
+    // Cache-first avoids a network round-trip for repeat visits. Bump CACHE whenever
+    // static assets change; the smoke check enforces alignment with the worker URL.
+    const response=await fetch(request,{cache:'no-store'});
+    if(response.ok&&response.type==='basic')await cache.put(cacheKey,response.clone());
+    return response;
   })());
 });
