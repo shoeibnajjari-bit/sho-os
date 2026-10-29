@@ -47,6 +47,35 @@
 
 ## تاریخچهٔ تغییرات
 
+### 2026-10-29T06:31:00Z — تکمیل schema، هم‌ترازی install و hardening export
+- عامل: Grok (xAI)
+- هدف: اصلاح اولویت‌صفر صحت داده و امنیت نصب/خروجی پس از راستی‌آزمایی کد فعلی
+- فایل‌های تغییرکرده:
+  - `schema.sql` — commit `b4dde7b713f44d413729b80fe314bbc5b3568e56`
+  - `install.php` — commit `519052a9d17e1a5a3e0f9ee8b9075ae137db2d52`
+  - `export.php` — commit `1865fa138ec94005bfe9e19be12715af9797380f`
+- خلاصهٔ تغییرات:
+  - جداول `contacts`، `bank_cards` و `savings_goals` به `schema.sql` اضافه شد تا با CREATE TABLEهای runtime در `index.php` یکی شود.
+  - `install.php` با ثبت‌نام مبتنی بر شماره تلفن، فیلد `display_name`، نقش `admin` برای حساب اولیه، و تنظیمات امن session هم‌تراز شد.
+  - `export.php` با session strict mode، cookieهای httponly/secure/samesite، بررسی حساب فعال، و نام فایل خروجی بهتر سخت‌سازی شد.
+- تست‌ها:
+  - بررسی استاتیک محتوا در برابر runtime SQL در `index.php`
+  - CI برای schema: run `40829610227` → success
+  - CI برای install/export: در حال اجرا در زمان ثبت این مدخل (runs 125 و 126)
+  - تست end-to-end نصب تازه و خروجی CSV روی هاست زنده: **تست نشده**
+- وضعیت انتشار / سایت زنده:
+  - workflow فایل‌های `install.php` و `.htaccess` را از FTP exclude می‌کند؛ پس `install.php` جدید به‌صورت خودکار روی InfinityFree نمی‌رود مگر آپلود دستی.
+  - `schema.sql` و `export.php` در deploy عادی آپلود می‌شوند (پس از موفقیت workflow).
+- ریسک‌ها / موارد باز:
+  - نصب تازه روی دیتابیس خالی هنوز end-to-end تست نشده
+  - restore با فایل پشتیبان آزمایشی تست نشده
+  - snapshot خودکار در هر ورود هنوز از نظر هزینه روی هاست رایگان بررسی نشده
+  - market.php هنوز fallback/cache محلی ندارد
+- قدم بعدی پیشنهادی:
+  1. تأیید موفقیت CI برای commitهای install و export
+  2. در صورت نیاز، آپلود دستی `install.php` روی هاست (چون از deploy exclude است)
+  3. hardening بعدی: cache/fallback بازار، یا بررسی هزینه snapshot، یا تست تاریخ شمسی با موارد مرزی
+
 ### 2026-10-29 — ایجاد لاگ هماهنگی چندمدلی
 - عامل: ChatGPT (ثبت زمینهٔ پروژه و دستورالعمل همکاری)
 - هدف: ایجاد مرجع مشترک برای ثبت هر اقدام تمام مدل‌ها و توسعه‌دهندگان.
