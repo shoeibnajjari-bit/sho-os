@@ -22,6 +22,10 @@ try {
     PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_EMULATE_PREPARES=>false
   ]);
 } catch (Throwable $e) { http_response_code(500); exit('اتصال دیتابیس برقرار نشد. تنظیمات config.php را بررسی کن.'); }
+// Preserve the last-resort admin recovery guard without running schema migrations here.
+if ((int)$pdo->query("SELECT COUNT(*) FROM users WHERE role='admin'")->fetchColumn()===0) {
+  $pdo->exec("UPDATE users SET role='admin' WHERE id=(SELECT id FROM (SELECT id FROM users ORDER BY id ASC LIMIT 1) first_user)");
+}
 $error = '';
 if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action'] ?? '')==='register') {
   requireCsrf();
