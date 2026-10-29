@@ -34,3 +34,23 @@
 .main-nav a:hover{color:var(--amber);border-color:var(--amber)}
 @media(max-width:900px){.main-nav{gap:10px;padding:0 8px}.main-nav a{font-size:10px}}
 @media(max-width:720px){.topbar{padding:0 12px}.main-nav{display:none}.topbar{height:64px}.brand small{letter-spacing:0}}
+
+/* Navigation refinement: compact icon-only mobile bar and hamburger below brand */
+.topbar{height:auto;min-height:74px;align-items:center;padding-top:10px;padding-bottom:10px}
+.brand-stack{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:150px}
+.brand-stack .brand{gap:8px}
+.menu-toggle{display:flex;flex-direction:column;justify-content:center;gap:4px;width:40px;height:34px;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);cursor:pointer}
+.menu-toggle span{display:block;width:18px;height:2px;border-radius:2px;background:var(--text)}
+.main-nav{display:none;position:absolute;top:calc(100% - 1px);right:max(12px,calc((100% - 1180px)/2));left:auto;margin:0;padding:10px;min-width:205px;max-height:70vh;overflow:auto;white-space:normal;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 40px #0008;flex-direction:column;align-items:stretch;gap:2px}
+.main-nav.open{display:flex}
+.main-nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border:0;border-radius:9px;font-size:13px}
+.main-nav a:hover{background:var(--panel2)}
+.main-nav a span{width:20px;text-align:center;color:var(--amber);font-size:17px}
+.top-actions{align-items:center}
+.profile-icon{display:grid;place-items:center;width:42px;height:42px;border:1px solid var(--line);border-radius:50%;background:var(--panel2);color:var(--amber)}
+.profile-icon svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.mobile-nav{align-items:center;gap:0}
+.mobile-nav a{display:grid;place-items:center;min-width:44px;min-height:40px;padding:6px 12px;color:var(--muted);border-radius:12px}
+.mobile-nav a:focus-visible,.mobile-nav a:hover{background:var(--panel2);color:var(--amber)}
+.mobile-nav svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:720px){.topbar{height:auto;min-height:64px;padding:9px 12px}.brand-stack{gap:6px;min-width:0}.brand-stack .brand{gap:7px}.brand-mark.small{width:34px;height:34px}.brand small{font-size:9px}.main-nav{right:12px;left:auto;min-width:200px}.mobile-nav a{min-width:42px;padding:6px 10px}}
