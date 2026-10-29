@@ -203,3 +203,7 @@ body.drawer-open{overflow:hidden}
 /* Align remaining legacy green accents with the plum visual system */
 .topbar{border-bottom-color:var(--line);background:color-mix(in srgb,var(--bg) 92%,transparent)}.brand-mark{background:var(--panel2);border-color:var(--line)}.stat,.panel{border-color:var(--line)}.status-pill{color:var(--text)}
 @media(max-width:600px){.achievement-main{gap:12px}.achievement-emblem{width:76px;height:76px;flex-basis:76px;border-radius:22px}.achievement-emblem span{font-size:35px}.achievement-copy h3{font-size:18px}.achievement-next>div:first-child{align-items:flex-start;flex-direction:column;gap:3px}.medal-shelf{gap:6px}.medal-item{min-height:72px}.medal-item>span{font-size:22px}.medal-item small{font-size:9px}}
+
+.inline-action{display:inline-flex;align-items:center;justify-content:center;margin:8px 0;padding:11px 16px;border-radius:10px;background:var(--amber);color:#21152a;font-weight:800}
+#notificationStatus{margin-top:10px}
+@media(max-width:700px){.inline-action{width:100%}}
