@@ -1,14 +1,14 @@
 {
-  "name": "SHO OS - Personal Hub",
-  "short_name": "SHO OS",
+  "name": "مدار - مدیریت شخصی",
+  "short_name": "مدار",
   "description": "مدیریت پول، بودجه و وظایف",
   "lang": "fa",
   "dir": "rtl",
   "start_url": "./index.php",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#11151b",
-  "theme_color": "#11151b",
+  "background_color": "#10231d",
+  "theme_color": "#10231d",
   "icons": [
     {
       "src": "assets/icon.svg",
