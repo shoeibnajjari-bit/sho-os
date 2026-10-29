@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action'] ?? '')==='register'
   elseif(!$phone) $error='شماره تلفن معتبر وارد کن؛ مثل ۰۹۱۲۱۲۳۴۵۶۷.';
   elseif(strlen($password)<12) $error='رمز عبور باید حداقل ۱۲ نویسه باشد.';
   else try {
-    $role=(int)$pdo->query('SELECT COUNT(*) FROM users')->fetchColumn()===0?'admin':'user';
+    $role='user';
     $stmt=$pdo->prepare('INSERT INTO users(username,display_name,password_hash,role) VALUES(?,?,?,?)');
     $stmt->execute([$phone,$displayName,password_hash($password,PASSWORD_DEFAULT),$role]);
     session_regenerate_id(true);$_SESSION['user_id']=(int)$pdo->lastInsertId();$_SESSION['username']=$phone;csrf();redirectHome();
