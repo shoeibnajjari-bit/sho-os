@@ -1,19 +1,15 @@
-const CACHE='madar-static-v22';
-const STATIC=[
-  'assets/app.css',
-  'assets/app.js',
-  'assets/nav-settings-polish.css',
-  'assets/icon.svg',
-  'manifest.webmanifest'
-];
-const STATIC_PATHS=new Set(STATIC.map(path=>'/'+path));
+const CACHE='madar-static-v23';
+const STATIC_PATHS=new Set([
+  '/assets/app.css',
+  '/assets/app.js',
+  '/assets/nav-settings-polish.css',
+  '/assets/icon.svg',
+  '/manifest.webmanifest'
+]);
 
 self.addEventListener('install',event=>{
-  event.waitUntil(
-    caches.open(CACHE)
-      .then(cache=>cache.addAll(STATIC))
-      .then(()=>self.skipWaiting())
-  );
+  // Do not let a missing optional asset prevent the new worker from activating.
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('activate',event=>{
@@ -27,23 +23,22 @@ self.addEventListener('activate',event=>{
 self.addEventListener('fetch',event=>{
   const request=event.request;
   const url=new URL(request.url);
-
   if(request.method!=='GET'||url.origin!==self.location.origin)return;
-
-  // Cache only an explicit allowlist of static assets. Never cache /, PHP routes,
-  // authentication pages, user-specific HTML, API responses, or financial records.
+  // Only static assets are eligible. HTML, PHP, and all user/financial data bypass SW.
   if(!STATIC_PATHS.has(url.pathname))return;
 
   event.respondWith((async()=>{
     const cache=await caches.open(CACHE);
     const cacheKey=new URL(url.pathname,self.location.origin).href;
-    const cached=await cache.match(cacheKey);
-    if(cached)return cached;
-
-    const response=await fetch(request);
-    if(response.ok&&response.type==='basic'){
-      await cache.put(cacheKey,response.clone());
+    try {
+      // Network-first so CSS/JS fixes become visible immediately after deployment.
+      const response=await fetch(request,{cache:'no-store'});
+      if(response.ok&&response.type==='basic')await cache.put(cacheKey,response.clone());
+      return response;
+    } catch(error) {
+      const cached=await cache.match(cacheKey);
+      if(cached)return cached;
+      throw error;
     }
-    return response;
   })());
 });
