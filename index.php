@@ -69,7 +69,7 @@ function jalaliMonthRange(string $iso): array {
  $jy=(int)latinDigits($m[3]); $jm=array_search($m[2],$months,true)+1;
  $start=parseJalaliDate(sprintf('%04d/%02d/01',$jy,$jm));
  if($start===null) throw new RuntimeException('ابتدای ماه شمسی محاسبه نشد.');
- $lastDay=$jm<=6?31:($jm<=11?30:29); $end=null;
+ $lastDay=$jm<=6?31:30; $end=null;
  for($d=$lastDay;$d>=28;$d--){$candidate=parseJalaliDate(sprintf('%04d/%02d/%02d',$jy,$jm,$d));if($candidate!==null){$end=$candidate;break;}}
  if($end===null) throw new RuntimeException('انتهای ماه شمسی محاسبه نشد.');
  return [$start,$end];
