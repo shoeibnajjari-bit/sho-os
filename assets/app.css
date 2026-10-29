@@ -28,3 +28,9 @@
 .jalali-days button:hover,.jalali-days button.selected{background:var(--amber);color:var(--bg)}.jalali-days button.outside{color:#738b7a}.jalali-days button.today{border-color:var(--green)}
 .jalali-picker-foot{display:flex;justify-content:space-between;margin-top:12px}.jalali-picker-foot button:first-child{background:var(--amber);color:var(--bg);font-weight:700}
 @media(max-width:500px){.jalali-picker{top:auto;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%)}}
+
+.main-nav{display:flex;align-items:center;gap:14px;margin-inline:auto;padding:0 18px;white-space:nowrap;overflow-x:auto}
+.main-nav a{font-size:11px;color:var(--muted);padding:8px 0;border-bottom:2px solid transparent}
+.main-nav a:hover{color:var(--amber);border-color:var(--amber)}
+@media(max-width:900px){.main-nav{gap:10px;padding:0 8px}.main-nav a{font-size:10px}}
+@media(max-width:720px){.topbar{padding:0 12px}.main-nav{display:none}.topbar{height:64px}.brand small{letter-spacing:0}}
