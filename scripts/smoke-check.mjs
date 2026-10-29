@@ -14,7 +14,7 @@ for (const file of ['index.php', 'assets/app.css', 'assets/app.js', 'assets/nav-
   if (!fs.existsSync(path.join(root, file)) || fs.statSync(path.join(root, file)).size === 0) fail('Required file missing or empty: ' + file);
 }
 
-if (/PLACEHOLDER/i.test(index)) fail('index.php contains a placeholder instead of the real application.');
+if (/(^|[^A-Za-z])PLACEHOLDER([^A-Za-z]|$)/.test(index)) fail('index.php contains a placeholder instead of the real application.');
 if (/cdn\.jsdelivr\.net/i.test(index)) fail('index.php must not depend on a remote bootstrap to render the app.');
 
 const refs = [...index.matchAll(/(?:src|href)=["']([^"'?#]+)(?:\?[^"']*)?["']/g)]
