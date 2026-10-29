@@ -89,7 +89,12 @@ document.addEventListener('submit',async e=>{const form=e.target.closest('form[d
     const direction=delta>0?'up':delta<0?'down':'flat',sign=delta>0?'+':'';
     return '<article class="market-card '+(item.available?direction:'unavailable')+'"><div class="market-card-top"><span class="market-icon">'+item.icon+'</span><span class="market-change '+direction+'">'+(hasDelta?sign+fmt(delta)+'٪':'تغییر نامشخص')+'</span></div><p>'+item.label+'</p><strong>'+(item.available?fmt(item.price):'در دسترس نیست')+'</strong><small>'+(item.available?'تومان':'منبع این نرخ را برنگرداند')+'</small><div class="market-card-foot">'+(item.unit||'بازار آزاد')+'</div></article>';
    }).join('');
-   updated.textContent='آخرین دریافت: '+new Intl.DateTimeFormat('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(data.fetchedAt));
+   const timeLabel=new Intl.DateTimeFormat('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(data.fetchedAt||Date.now()));
+   if(updated){
+    updated.textContent=data.stale
+      ?('نمایش قیمت ذخیره‌شده · '+timeLabel+(data.message?' · '+data.message:''))
+      :('آخرین دریافت: '+timeLabel);
+   }
   }catch(e){if(!grid.querySelector('.market-card'))grid.innerHTML='';grid.insertAdjacentHTML('beforeend','<div class="market-error" role="status">قیمت‌ها فعلاً در دسترس نیستند. چند لحظه دیگر دوباره تلاش کن.</div>');if(updated)updated.textContent='اتصال به منبع قیمت برقرار نشد.'}
   finally{if(refresh){refresh.disabled=false;refresh.textContent='به‌روزرسانی'}}
  }
