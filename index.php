@@ -68,11 +68,22 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action'] ?? '')==='register'
 }
 if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action'] ?? '')==='login') {
   requireCsrf();
-  $stmt=$pdo->prepare('SELECT id,username,password_hash FROM users WHERE username=? LIMIT 1');
-  $stmt->execute([trim((string)($_POST['username'] ?? ''))]); $user=$stmt->fetch();
-  if ($user && password_verify((string)($_POST['password'] ?? ''), $user['password_hash'])) {
-    session_regenerate_id(true); $_SESSION['user_id']=(int)$user['id']; $_SESSION['username']=$user['username']; csrf(); redirectHome();
-  } else $error='نام کاربری یا رمز عبور درست نیست.';
+  $ipHash=hash('sha256',(string)($_SERVER['REMOTE_ADDR']??'unknown'));
+  $stmt=$pdo->prepare('SELECT attempts,window_started,blocked_until FROM login_attempts WHERE ip_hash=?');$stmt->execute([$ipHash]);$attempt=$stmt->fetch();$now=time();
+  if($attempt&&$attempt['blocked_until']&&strtotime($attempt['blocked_until'])>$now){$error='تلاش‌های ورود موقتاً محدود شده‌اند؛ ۱۵ دقیقه دیگر دوباره امتحان کن.';}
+  else {
+    $login=trim((string)($_POST['username']??''));$login=normalizePhone($login)??$login;
+    $stmt=$pdo->prepare('SELECT id,username,password_hash,is_active FROM users WHERE username=? LIMIT 1');$stmt->execute([$login]);$user=$stmt->fetch();
+    if($user&&password_verify((string)($_POST['password']??''),$user['password_hash'])&&(int)$user['is_active']===1){
+      $pdo->prepare('DELETE FROM login_attempts WHERE ip_hash=?')->execute([$ipHash]);
+      session_regenerate_id(true);$_SESSION['user_id']=(int)$user['id'];$_SESSION['username']=$user['username'];csrf();redirectHome();
+    } else {
+      $expired=!$attempt||($now-strtotime($attempt['window_started']))>900;$count=$expired?1:((int)$attempt['attempts']+1);$blocked=$count>=5?date('Y-m-d H:i:s',$now+900):null;
+      $started=$expired?date('Y-m-d H:i:s',$now):$attempt['window_started'];
+      $stmt=$pdo->prepare('INSERT INTO login_attempts(ip_hash,attempts,window_started,blocked_until) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE attempts=VALUES(attempts),window_started=VALUES(window_started),blocked_until=VALUES(blocked_until)');$stmt->execute([$ipHash,$count,$started,$blocked]);
+      $error='شماره تلفن یا رمز عبور درست نیست.';
+    }
+  }
 }
 if (empty($_SESSION['user_id']) && isset($_GET['register'])):
 ?><!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#10231d"><link rel="stylesheet" href="assets/app.css"><title>ثبت‌نام در مدار</title></head><body class="login-body"><main class="login-card"><div class="brand-mark">م</div><p class="eyebrow">شروع مسیر تازه</p><h1>ساخت حساب مدار</h1><p class="muted">نامت را فارسی بنویس؛ شماره تلفن فعلاً شناسه حساب است و پیامک تأیید ارسال نمی‌شود.</p><?php if($error): ?><div class="notice"><?=h($error)?></div><?php endif ?><form method="post"><input type="hidden" name="csrf" value="<?=h(csrf())?>"><input type="hidden" name="action" value="register"><label>نام نمایشی</label><input name="display_name" maxlength="100" autocomplete="name" placeholder="مثلاً شعیب" required><label>شماره تلفن</label><input name="phone" inputmode="tel" autocomplete="tel" placeholder="۰۹۱۲۱۲۳۴۵۶۷" required><label>رمز عبور (حداقل ۱۲ نویسه)</label><input type="password" name="password" minlength="12" autocomplete="new-password" required><button class="primary full">ساخت حساب رایگان</button></form><p class="tiny"><a href="index.php">بازگشت به ورود</a></p></main></body></html><?php exit; endif;
