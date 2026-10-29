@@ -36,8 +36,8 @@ let installPrompt;const installBtn=document.getElementById('installBtn');window.
 })();
 /* Accessible hamburger navigation */
 (()=>{const button=document.querySelector('.menu-toggle'),menu=document.getElementById('mainMenu');if(!button||!menu)return;
- const close=()=>{menu.classList.remove('open');button.setAttribute('aria-expanded','false')};
- button.addEventListener('click',e=>{e.stopPropagation();const open=menu.classList.toggle('open');button.setAttribute('aria-expanded',String(open))});
+ const close=()=>{menu.classList.remove('is-open');button.setAttribute('aria-expanded','false')};
+ button.addEventListener('click',e=>{e.stopPropagation();const open=menu.classList.toggle('is-open');button.setAttribute('aria-expanded',String(open))});
  menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',close));
  document.addEventListener('click',e=>{if(!menu.contains(e.target)&&!button.contains(e.target))close()});
  document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
