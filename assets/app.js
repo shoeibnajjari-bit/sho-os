@@ -95,3 +95,18 @@ document.addEventListener('submit',async e=>{const form=e.target.closest('form[d
  }
  refresh?.addEventListener('click',loadMarket);loadMarket();window.setInterval(loadMarket,60000);
 })();
+
+// Prevent accidental double submissions on regular POST forms.
+document.addEventListener('submit',event=>{
+ const form=event.target;
+ if(!(form instanceof HTMLFormElement)||form.dataset.allowRepeat==='true'||form.dataset.ajaxForm==='task-toggle')return;
+ if(form.dataset.submitting==='true'){event.preventDefault();return;}
+ form.dataset.submitting='true';
+ const submitter=event.submitter;
+ if(submitter instanceof HTMLButtonElement||submitter instanceof HTMLInputElement){
+  submitter.dataset.originalLabel=submitter instanceof HTMLInputElement?submitter.value:submitter.textContent||'';
+  submitter.disabled=true;
+  if(submitter instanceof HTMLButtonElement&&submitter.type!=='button')submitter.textContent='در حال ثبت…';
+  if(submitter instanceof HTMLInputElement&&submitter.type==='submit')submitter.value='در حال ثبت…';
+ }
+});
