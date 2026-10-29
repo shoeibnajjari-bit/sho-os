@@ -61,6 +61,7 @@ jobs:
             **/README.md
             **/config.php
             **/install.php
+            **/.htaccess
             **/.env
             **/.env.*
             **/node_modules/**
