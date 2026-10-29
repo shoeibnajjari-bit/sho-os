@@ -83,6 +83,6 @@ if (!market.includes('latest-toman.json')) fail('Market proxy is not using the v
 if (!appJs.includes('GOLD_18K_IRR.json') || !appJs.includes('BTC_USD.json') || !appJs.includes('USDT_USD.json')) fail('Yearly history chart data sources missing.');
 if (!appJs.includes('marketHistoryGrid')) fail('Market history chart UI missing.');
 
-if (!index.includes("!in_array($page,['home','finance','categories'")) fail('Category manager route is not allowlisted.');
+if (!index.includes("!in_array($page,['home','analytics','finance','categories'")) fail('Category manager route is not allowlisted.');
 if (process.exitCode) process.exit(process.exitCode);
 console.log('Smoke checks passed: required files, local asset references, no remote bootstrap, and safe/version-aligned PWA cache.');
