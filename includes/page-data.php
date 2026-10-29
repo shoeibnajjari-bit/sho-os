@@ -158,7 +158,7 @@ if ($page === 'transactions') {
         $stmt->execute([(int)$_GET['edit_tx'], $userId]);
         $editTransaction = $stmt->fetch() ?: null;
     }
-} elseif (in_array($page, ['home','finance'], true)) {
+} elseif (in_array($page, ['home','finance','analytics'], true)) {
     $stmt = $pdo->prepare("SELECT * FROM transactions WHERE user_id=? ORDER BY transaction_date DESC,id DESC LIMIT 12");
     $stmt->execute([$userId]);
     $transactions = $stmt->fetchAll();
