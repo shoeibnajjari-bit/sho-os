@@ -1,4 +1,4 @@
-# SHO OS
+# مدار
 
 A Persian right-to-left personal finance and task-management Progressive Web App (PWA), built with PHP and MySQL.
 
@@ -32,6 +32,6 @@ A Persian right-to-left personal finance and task-management Progressive Web App
 
 - Do not store bank login credentials, card PINs, or SMS one-time passwords in this app.
 - The PWA cannot read Android SMS automatically; automatic SMS import would require a separate Android app and explicit permissions.
-- Balances reflect only transactions entered into SHO OS; they are not live bank balances.
+- Balances reflect only transactions entered into مدار; they are not live bank balances.
 - Financial advice is simple rule-based guidance, not a machine-learning model or professional financial advice.
 - Test on your hosting provider before entering real financial records. Back up the database regularly.
