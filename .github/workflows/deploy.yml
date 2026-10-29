@@ -24,6 +24,13 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Validate PHP, JavaScript and manifest syntax
+        run: |
+          php -l index.php
+          php -l export.php
+          node --check assets/app.js
+          python -m json.tool manifest.webmanifest > /dev/null
+
       - name: Validate deployment secrets
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
