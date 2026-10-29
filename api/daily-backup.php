@@ -30,6 +30,9 @@ try {
         $config['db_user'], $config['db_pass'],
         [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false]
     );
+    $active = $pdo->prepare('SELECT id FROM users WHERE id=? AND is_active=1 LIMIT 1');
+    $active->execute([$userId]);
+    if (!$active->fetchColumn()) backupResponse(403, ['ok'=>false,'error'=>'Active account required.']);
     require_once __DIR__ . '/../includes/daily-backup.php';
     $created = createDailyBackupSnapshot($pdo, $userId);
     backupResponse(200, ['ok'=>true,'created'=>$created]);
