@@ -48,9 +48,9 @@ document.addEventListener('submit',async e=>{const form=e.target.closest('form[d
 (()=> {
  const allowed=['forest','midnight','plum','sand'];
  const root=document.documentElement;
- const readTheme=()=>{try{const t=localStorage.getItem('madar-theme');return allowed.includes(t)?t:'forest'}catch(_){return 'forest'}};
+ const readTheme=()=>{try{const t=localStorage.getItem('madar-theme');return allowed.includes(t)?t:'plum'}catch(_){return 'plum'}};
  const applyTheme=(theme,save=false)=>{
-  if(!allowed.includes(theme))theme='forest';
+  if(!allowed.includes(theme))theme='plum';
   root.dataset.theme=theme;
   if(save){try{localStorage.setItem('madar-theme',theme)}catch(_){}}
   document.querySelectorAll('[data-theme-choice]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.themeChoice===theme)));
@@ -59,7 +59,7 @@ document.addEventListener('submit',async e=>{const form=e.target.closest('form[d
  document.addEventListener('click',e=>{
   const choice=e.target.closest('[data-theme-choice]');
   if(choice){applyTheme(choice.dataset.themeChoice,true);return}
-  if(e.target.closest('[data-theme-reset]')){applyTheme('forest',true)}
+  if(e.target.closest('[data-theme-reset]')){applyTheme('plum',true)}
  });
 })();
 
