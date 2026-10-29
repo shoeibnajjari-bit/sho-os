@@ -74,7 +74,7 @@ document.addEventListener('submit',async e=>{const form=e.target.closest('form[d
  checkPermission();runReminders();
 })();
 
-/* Market board: quotes are served by the same-origin PHP proxy and refreshed every minute. */
+/* Market board: exact quote IDs from the same-origin proxy; historical lines use the published daily data files. */
 (()=>{
  const grid=document.getElementById('marketGrid');
  if(!grid)return;
@@ -83,7 +83,6 @@ document.addEventListener('submit',async e=>{const form=e.target.closest('form[d
  const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
  let loading=false;
  async function loadMarket(){
-  // A slow response must not overlap the next timer tick or a manual refresh.
   if(loading)return;
   loading=true;
   if(refresh){refresh.disabled=true;refresh.textContent='در حال دریافت…'}
@@ -97,31 +96,69 @@ document.addEventListener('submit',async e=>{const form=e.target.closest('form[d
     const delta=Number(item.change),hasDelta=item.change!==null&&item.change!==''&&Number.isFinite(delta);
     const direction=hasDelta?(delta>0?'up':delta<0?'down':'flat'):'flat';
     const sign=delta>0?'+':'';
-    return '<article class="market-card '+(available?direction:'unavailable')+'"><div class="market-card-top"><span class="market-icon">'+esc(item.icon||'◈')+'</span><span class="market-change '+direction+'">'+(hasDelta?sign+fmt(delta)+'٪':'تغییر نامشخص')+'</span></div><p>'+esc(item.label||'بدون عنوان')+'</p><strong>'+(available?fmt(price):'در دسترس نیست')+'</strong><small>'+(available?'تومان':'منبع این نرخ را برنگرداند')+'</small><div class="market-card-foot">'+esc(item.unit||'بازار آزاد')+'</div></article>';
+    const stamp=item.quoteTime?new Intl.DateTimeFormat('fa-IR',{hour:'2-digit',minute:'2-digit'}).format(new Date(item.quoteTime)):'';
+    return '<article class="market-card '+(available?direction:'unavailable')+'"><div class="market-card-top"><span class="market-icon">'+esc(item.icon||'◈')+'</span><span class="market-change '+direction+'">'+(hasDelta?sign+fmt(delta)+'٪':'تغییر نامشخص')+'</span></div><p>'+esc(item.label||'بدون عنوان')+'</p><strong>'+(available?fmt(price):'در دسترس نیست')+'</strong><small>'+(available?'تومان':'نرخ تازه و معتبر نیست')+'</small><div class="market-card-foot">'+esc(item.unit||'بازار آزاد')+'</div><small>منبع: '+esc(item.source||'نامشخص')+(stamp?' · '+stamp:'')+'</small></article>';
    }).join('');
-   const timeLabel=new Intl.DateTimeFormat('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(data.fetchedAt||Date.now()));
-   if(updated)updated.textContent=data.stale
-      ?('نمایش قیمت ذخیره‌شده · '+timeLabel+(data.message?' · '+String(data.message):''))
-      :('آخرین دریافت: '+timeLabel);
+   if(updated)updated.textContent='آخرین بررسی منبع: '+new Intl.DateTimeFormat('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(data.fetchedAt||Date.now()))+(data.message?' · '+data.message:'');
   }catch(e){
-   grid.querySelector('.market-error')?.remove();
-   if(!grid.querySelector('.market-card')){
-    const error=document.createElement('div');
-    error.className='market-error';
-    error.setAttribute('role','status');
-    error.textContent='قیمت‌ها فعلاً در دسترس نیستند. چند لحظه دیگر دوباره تلاش کن.';
-    grid.appendChild(error);
-   }
-   if(updated)updated.textContent='اتصال به منبع قیمت برقرار نشد.';
-  }finally{
-   loading=false;
-   if(refresh){refresh.disabled=false;refresh.textContent='به‌روزرسانی'}
+   if(updated)updated.textContent='دریافت قیمت ناموفق بود؛ برای جلوگیری از نمایش عدد اشتباه، قیمت جدید نمایش داده نشد.';
+   if(!grid.querySelector('.market-error')){const error=document.createElement('p');error.className='market-error';error.textContent='منبع قیمت موقتاً پاسخ نداد. کمی بعد دوباره تلاش کن.';grid.appendChild(error)}
+  }finally{loading=false;if(refresh){refresh.disabled=false;refresh.textContent='به‌روزرسانی'}}
+ }
+ const root='https://raw.githubusercontent.com/iran-market/iran-market.github.io/main/data/history/';
+ const historyFiles={
+  gold:'GOLD_18K_IRR.json',
+  usd:'USD_IRR_FREE.json',
+  btc:'BTC_USD.json',
+  usdt:'USDT_USD.json'
+ };
+ const historyStatus=document.getElementById('marketHistoryStatus');
+ const historyGrid=document.getElementById('marketHistoryGrid');
+ const historyFmt=n=>new Intl.NumberFormat('fa-IR',{maximumFractionDigits:0}).format(n);
+ function drawChart(points){
+  if(points.length<2)return '<p class="tiny">دادهٔ تاریخی کافی نیست.</p>';
+  const vals=points.map(p=>p.value),min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;
+  const coords=points.map((p,i)=>[8+i*304/(points.length-1),76-(p.value-min)/range*64]);
+  const path=coords.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  return '<svg class="history-sparkline" viewBox="0 0 320 88" role="img" aria-label="نمودار قیمت روزانه یک‌ساله"><path d="'+path+'" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+ }
+ async function loadHistory(){
+  if(!historyGrid)return;
+  try{
+   const entries=await Promise.all(Object.entries(historyFiles).map(async([key,file])=>{
+    const response=await fetch(root+file,{cache:'force-cache'});
+    if(!response.ok)throw new Error('history unavailable');
+    const json=await response.json();
+    const rows=Array.isArray(json.data)?json.data:[];
+    return [key,rows.filter(r=>r&&r.t&&Number.isFinite(Number(r.close))&&Number(r.close)>0).map(r=>({date:String(r.t).slice(0,10),value:Number(r.close)}))];
+   }));
+   const hist=Object.fromEntries(entries),cutoff=Date.now()-365*86400000;
+   const inYear=rows=>rows.filter(p=>new Date(p.date+'T23:59:59Z').getTime()>=cutoff);
+   const usdMap=new Map(inYear(hist.usd).map(p=>[p.date,p.value]));
+   const series={
+    gold:{label:'طلای ۱۸ عیار',unit:'تومان / گرم',points:inYear(hist.gold)},
+    usd:{label:'دلار آزاد',unit:'تومان / دلار',points:inYear(hist.usd)},
+    btc:{label:'بیت‌کوین',unit:'تومان / بیت‌کوین · برآوردی',points:inYear(hist.btc).filter(p=>usdMap.has(p.date)).map(p=>({date:p.date,value:p.value*usdMap.get(p.date)}))},
+    usdt:{label:'تتر',unit:'تومان / تتر · برآوردی',points:inYear(hist.usdt).filter(p=>usdMap.has(p.date)).map(p=>({date:p.date,value:p.value*usdMap.get(p.date)}))}
+   };
+   const cards=Object.values(series).map(s=>{
+    const p=s.points;
+    if(p.length<2)return '<article class="history-card"><h3>'+esc(s.label)+'</h3><p class="tiny">دادهٔ تاریخی یک‌سالهٔ قابل اتکا برای محاسبهٔ رشد در دسترس نیست.</p></article>';
+    const first=p[0].value,last=p[p.length-1].value,growth=(last/first-1)*100;
+    const dir=growth>0?'up':growth<0?'down':'flat';
+    return '<article class="history-card"><div class="history-card-head"><h3>'+esc(s.label)+'</h3><span class="market-change '+dir+'">'+(growth>0?'+':'')+fmt(growth)+'٪</span></div>'+drawChart(p)+'<div class="history-endpoints"><span>ابتدای دوره<br><strong>'+historyFmt(first)+'</strong></span><span>آخرین داده<br><strong>'+historyFmt(last)+'</strong></span></div><small class="tiny">'+esc(s.unit)+' · '+esc(p[0].date)+' تا '+esc(p[p.length-1].date)+' · '+fmt(p.length)+' نقطهٔ روزانه</small></article>';
+   }).join('');
+   historyGrid.innerHTML=cards;
+   if(historyStatus)historyStatus.textContent='تغییر محاسبه‌شده از اولین تا آخرین دادهٔ موجود در بازهٔ ۳۶۵روزه؛ این درصد بازده تضمین‌شده یا پیش‌بینی نیست.';
+  }catch(e){
+   if(historyStatus)historyStatus.textContent='تاریخچه از منبع عمومی دریافت نشد. نمودار یا درصد رشد ساختگی نمایش داده نمی‌شود؛ بعداً دوباره تلاش کن.';
   }
  }
  refresh?.addEventListener('click',loadMarket);
  loadMarket();
+ loadHistory();
  window.setInterval(loadMarket,60000);
-})();
+})(); 
 
 // Prevent accidental double submissions on regular POST forms.
 document.addEventListener('submit',event=>{
