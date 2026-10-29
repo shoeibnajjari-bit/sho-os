@@ -79,6 +79,14 @@ if (!index.includes("if($page==='analytics'): ?>")) fail('Dedicated analytics pa
 if (!index.includes('assets/analytics.css?v=1')) fail('Analytics stylesheet is not versioned.');
 if ((index.match(/class="panel achievement-panel"/g)||[]).length !== 1) fail('Progress panel should exist exactly once and be moved, not duplicated.');
 if (!index.includes('assets/nav-settings-polish.css?v=3')) fail('Navigation CSS cache-buster was not updated.');
+if (!index.slice(0,index.indexOf('</head>')).includes("document.documentElement.dataset.theme")) fail('Saved theme must be applied before stylesheets to prevent theme flash.');
+if (!index.includes("localStorage.getItem('madar-theme')")) fail('Theme bootstrap must read the saved user theme.');
+if (index.includes('class="panel finance-pulse"')) fail('Finance pulse should not remain on the home dashboard.');
+if (index.includes('class="panel" id="money"')) fail('Quick transaction entry should not remain on the home dashboard.');
+const badgeEnd = index.indexOf('</section>', index.indexOf('class="panel achievement-panel"'));
+const recentTxStart = index.indexOf('class="panel transactions-panel"');
+if (badgeEnd < 0 || recentTxStart < badgeEnd || recentTxStart - badgeEnd > 300) fail('Recent transactions must appear directly below the analytics badges.');
+
 if (index.includes('class="motivation"')) fail('Motivational quote box should not appear on the home dashboard.');
 const badgeAt = index.indexOf('class="panel achievement-panel"');
 const analyticsTxAt = index.indexOf('class="panel transactions-panel"', badgeAt);
