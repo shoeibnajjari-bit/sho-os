@@ -35,13 +35,13 @@ document.addEventListener('submit',async e=>{const form=e.target.closest('form[d
  document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
  document.querySelectorAll('[data-jalali-calendar]').forEach(input=>{if(!input.value)input.value=val(today())});
 })();
-/* Accessible hamburger navigation */
-(()=>{const button=document.querySelector('.menu-toggle'),menu=document.getElementById('mainMenu');if(!button||!menu)return;
- const close=()=>{menu.classList.remove('is-open');button.setAttribute('aria-expanded','false')};
- button.addEventListener('click',e=>{e.stopPropagation();const open=menu.classList.toggle('is-open');button.setAttribute('aria-expanded',String(open))});
- menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',close));
- document.addEventListener('click',e=>{if(!menu.contains(e.target)&&!button.contains(e.target))close()});
- document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+/* Accessible right-side navigation drawer opened from the site logo */
+(()=>{const trigger=document.getElementById('menuTrigger'),menu=document.getElementById('mainMenu'),closeBtn=document.getElementById('drawerClose'),backdrop=document.getElementById('drawerBackdrop');if(!trigger||!menu||!backdrop)return;
+ const setOpen=open=>{menu.classList.toggle('is-open',open);backdrop.classList.toggle('is-visible',open);trigger.setAttribute('aria-expanded',String(open));menu.setAttribute('aria-hidden',String(!open));document.body.classList.toggle('drawer-open',open);if(open)closeBtn?.focus();else trigger.focus()};
+ trigger.addEventListener('click',e=>{e.preventDefault();setOpen(!menu.classList.contains('is-open'))});
+ closeBtn?.addEventListener('click',()=>setOpen(false));backdrop.addEventListener('click',()=>setOpen(false));
+ menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{menu.classList.remove('is-open');backdrop.classList.remove('is-visible');trigger.setAttribute('aria-expanded','false');menu.setAttribute('aria-hidden','true');document.body.classList.remove('drawer-open')}));
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&menu.classList.contains('is-open'))setOpen(false)});
 })();
 
 /* Persistent visual theme settings */
