@@ -88,7 +88,7 @@ if (badgeAt < 0 || analyticsTxAt < badgeAt || analyticsWelcomeAt < analyticsTxAt
 if (index.includes("in_array($page,['home','transactions'],true)): ?><section class=\"panel transactions-panel\"")) fail('Latest transactions box should be removed from home dashboard.');
 const authenticatedHeadAt = index.indexOf('<meta name="description"');
 const authenticatedCssAt = index.indexOf('assets/app.css?v=1.18', authenticatedHeadAt);
-const authenticatedThemeAt = index.indexOf('localStorage.getItem("madar-theme")', authenticatedHeadAt);
+const authenticatedThemeAt = index.lastIndexOf('localStorage.getItem("madar-theme")', authenticatedHeadAt);
 if (authenticatedThemeAt < 0 || authenticatedCssAt < 0 || authenticatedThemeAt > authenticatedCssAt) fail('Saved theme must be applied before the main stylesheet to prevent theme flash.');
 if (!index.includes('assets/app.css?v=1.18')) fail('Main CSS cache-buster was not updated.');
 
