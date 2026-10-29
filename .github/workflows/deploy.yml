@@ -28,6 +28,7 @@ jobs:
         run: |
           php -l index.php
           php -l export.php
+          php -l backup.php
           php -l pricing.php
           php -l install.php
           php -l config.example.php
