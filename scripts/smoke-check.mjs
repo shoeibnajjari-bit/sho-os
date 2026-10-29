@@ -48,5 +48,6 @@ if (!index.includes('rename_category') || !index.includes('delete_category')) fa
 if (!backup.includes("'categories'")) fail('Manual backup must include custom categories.');
 if (!restore.includes("'categories'")) fail('Restore must handle category data.');
 if (!index.includes('category-manager')) fail('Category manager UI missing.');
+if (!index.includes("!in_array($page,['home','finance','categories'")) fail('Category manager route is not allowlisted.');
 if (process.exitCode) process.exit(process.exitCode);
 console.log('Smoke checks passed: required files, local asset references, no remote bootstrap, and safe/version-aligned PWA cache.');
