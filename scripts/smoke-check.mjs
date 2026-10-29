@@ -79,6 +79,14 @@ if (!index.includes("if($page==='analytics'): ?>")) fail('Dedicated analytics pa
 if (!index.includes('assets/analytics.css?v=1')) fail('Analytics stylesheet is not versioned.');
 if ((index.match(/class="panel achievement-panel"/g)||[]).length !== 1) fail('Progress panel should exist exactly once and be moved, not duplicated.');
 if (!index.includes('assets/nav-settings-polish.css?v=3')) fail('Navigation CSS cache-buster was not updated.');
+if (index.includes('class="motivation"')) fail('Motivational quote box should not appear on the home dashboard.');
+const badgeAt = index.indexOf('class="panel achievement-panel"');
+const analyticsTxAt = index.indexOf('class="panel transactions-panel"', badgeAt);
+const analyticsWelcomeAt = index.indexOf('class="welcome analytics-welcome"', badgeAt);
+if (badgeAt < 0 || analyticsTxAt < badgeAt || analyticsWelcomeAt < analyticsTxAt) fail('Latest transactions should appear immediately below progress badges on analytics.');
+if (index.includes("in_array($page,['home','transactions'],true)): ?><section class=\"panel transactions-panel\"")) fail('Latest transactions box should be removed from home dashboard.');
+if (!index.includes("localStorage.getItem('madar-theme')") || index.indexOf("localStorage.getItem('madar-theme')") > index.indexOf('assets/app.css?v=1.17')) fail('Saved theme must be applied before the main stylesheet to prevent theme flash.');
+if (!index.includes('assets/app.css?v=1.17')) fail('Main CSS cache-buster was not updated.');
 
 if (!index.includes("page=categories") || !index.includes("action\" value=\"add_category")) fail('Category management route/action missing.');
 if (!schema.includes('CREATE TABLE IF NOT EXISTS categories')) fail('Per-user category table missing from schema.sql.');
