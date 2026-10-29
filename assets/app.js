@@ -206,3 +206,41 @@ document.addEventListener('submit',event=>{
     document.head.appendChild(l);
   }
 })();
+
+/* Local task search and status filters. This only filters rendered cards; it never changes or deletes server data. */
+(()=>{
+ const root=document.querySelector('#tasks .task-list');
+ if(!root||root.dataset.filterReady==='1')return;
+ const items=[...root.querySelectorAll('.task-item')];
+ if(items.length<2)return;
+ root.dataset.filterReady='1';
+ const toolbar=document.createElement('section');
+ toolbar.className='task-filter-tools';
+ toolbar.setAttribute('aria-label','جست‌وجو و فیلتر کارها');
+ toolbar.innerHTML='<label class="task-search-label">جست‌وجو در کارها<input type="search" data-task-search placeholder="عنوان کار را بنویس…" autocomplete="off"></label><div class="task-filter-buttons" role="group" aria-label="فیلتر وضعیت"><button type="button" data-task-filter="all" aria-pressed="true">همه</button><button type="button" data-task-filter="open" aria-pressed="false">باز</button><button type="button" data-task-filter="done" aria-pressed="false">انجام‌شده</button></div><p class="task-filter-count" data-task-count role="status" aria-live="polite"></p>';
+ root.parentNode.insertBefore(toolbar,root);
+ const search=toolbar.querySelector('[data-task-search]');
+ const count=toolbar.querySelector('[data-task-count]');
+ const buttons=[...toolbar.querySelectorAll('[data-task-filter]')];
+ let status='all';
+ const apply=()=>{
+  const term=search.value.trim().toLocaleLowerCase('fa');
+  let visible=0;
+  items.forEach(item=>{
+   const done=item.classList.contains('done');
+   const statusMatch=status==='all'||(status==='done'&&done)||(status==='open'&&!done);
+   const textMatch=!term||item.textContent.toLocaleLowerCase('fa').includes(term);
+   const show=statusMatch&&textMatch;
+   item.hidden=!show;
+   if(show)visible++;
+  });
+  count.textContent='نمایش '+visible+' از '+items.length+' کار';
+ };
+ search.addEventListener('input',apply);
+ buttons.forEach(button=>button.addEventListener('click',()=>{
+  status=button.dataset.taskFilter||'all';
+  buttons.forEach(other=>other.setAttribute('aria-pressed',String(other===button)));
+  apply();
+ }));
+ apply();
+})();
