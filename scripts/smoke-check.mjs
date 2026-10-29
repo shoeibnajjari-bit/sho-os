@@ -69,7 +69,7 @@ for(const label of expectedFinanceLabels){
   if(pos<=lastFinanceIndex)fail('Finance submenu item order is incorrect near: '+label);
   lastFinanceIndex=pos;
 }
-if (!index.includes('assets/app.css?v=1.17')) fail('App CSS cache-buster was not updated.');
+if (!index.includes('assets/app.css?v=1.18')) fail('App CSS cache-buster was not updated.');
 if (!index.includes('requestIdleCallback')) fail('Daily backup should be deferred until the page is idle.');
 if (!index.includes('assets/app.js?v=1.11')) fail('Application JS cache-buster was not updated.');
 if (!index.includes("'analytics'")) fail('Analytics route is not allowlisted.');
@@ -85,8 +85,8 @@ const analyticsTxAt = index.indexOf('class="panel transactions-panel"', badgeAt)
 const analyticsWelcomeAt = index.indexOf('class="welcome analytics-welcome"', badgeAt);
 if (badgeAt < 0 || analyticsTxAt < badgeAt || analyticsWelcomeAt < analyticsTxAt) fail('Latest transactions should appear immediately below progress badges on analytics.');
 if (index.includes("in_array($page,['home','transactions'],true)): ?><section class=\"panel transactions-panel\"")) fail('Latest transactions box should be removed from home dashboard.');
-if (!index.includes("localStorage.getItem('madar-theme')") || index.indexOf("localStorage.getItem('madar-theme')") > index.indexOf('assets/app.css?v=1.17')) fail('Saved theme must be applied before the main stylesheet to prevent theme flash.');
-if (!index.includes('assets/app.css?v=1.17')) fail('Main CSS cache-buster was not updated.');
+if (!index.includes("localStorage.getItem('madar-theme')") || index.indexOf("localStorage.getItem('madar-theme')") > index.indexOf('assets/app.css?v=1.18')) fail('Saved theme must be applied before the main stylesheet to prevent theme flash.');
+if (!index.includes('assets/app.css?v=1.18')) fail('Main CSS cache-buster was not updated.');
 
 if (!index.includes("page=categories") || !index.includes("action\" value=\"add_category")) fail('Category management route/action missing.');
 if (!schema.includes('CREATE TABLE IF NOT EXISTS categories')) fail('Per-user category table missing from schema.sql.');
