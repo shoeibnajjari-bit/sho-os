@@ -1,0 +1,40 @@
+CREATE TABLE IF NOT EXISTS users (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(80) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS transactions (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  type ENUM('expense','income') NOT NULL,
+  amount BIGINT UNSIGNED NOT NULL,
+  category VARCHAR(80) NOT NULL DEFAULT 'متفرقه',
+  note VARCHAR(255) NOT NULL DEFAULT '',
+  transaction_date DATE NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_tx_user_date (user_id, transaction_date),
+  CONSTRAINT fk_tx_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS tasks (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  title VARCHAR(180) NOT NULL,
+  due_date DATE NULL,
+  priority ENUM('low','medium','high') NOT NULL DEFAULT 'medium',
+  is_done TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_tasks_user (user_id, is_done, due_date),
+  CONSTRAINT fk_task_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS budgets (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  category VARCHAR(80) NOT NULL,
+  monthly_limit BIGINT UNSIGNED NOT NULL,
+  UNIQUE KEY uq_budget_user_category (user_id, category),
+  CONSTRAINT fk_budget_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
