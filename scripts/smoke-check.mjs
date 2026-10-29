@@ -40,5 +40,13 @@ for (const file of ['/assets/app.css', '/assets/app.js', '/assets/nav-settings-p
   if (!allowlist.includes(file)) fail('Static asset missing from service-worker allowlist: ' + file);
 }
 
+const backup = read('backup.php');
+const restore = read('restore.php');
+if (!index.includes("page=categories") || !index.includes("action\" value=\"add_category")) fail('Category management route/action missing.');
+if (!index.includes('CREATE TABLE IF NOT EXISTS categories')) fail('Per-user category table migration missing.');
+if (!index.includes('rename_category') || !index.includes('delete_category')) fail('Category rename/delete actions missing.');
+if (!backup.includes("'categories'")) fail('Manual backup must include custom categories.');
+if (!restore.includes("'categories'")) fail('Restore must handle category data.');
+if (!index.includes('category-manager')) fail('Category manager UI missing.');
 if (process.exitCode) process.exit(process.exitCode);
 console.log('Smoke checks passed: required files, local asset references, no remote bootstrap, and safe/version-aligned PWA cache.');
