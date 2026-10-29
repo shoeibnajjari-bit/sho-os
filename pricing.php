@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 ?><!doctype html><html lang="fa" dir="rtl"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0b261c">
-<meta name="description" content="تعرفه‌ها و مسیر توسعه امکانات مدار"><link rel="stylesheet" href="assets/app.css?v=0.8"><link rel="icon" href="assets/icon.svg" type="image/svg+xml"><title>تعرفه‌ها | مدار</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#21152a">
+<meta name="description" content="تعرفه‌ها و مسیر توسعه امکانات مدار"><link rel="stylesheet" href="assets/app.css?v=1.2"><link rel="icon" href="assets/icon.svg" type="image/svg+xml"><title>تعرفه‌ها | مدار</title>
 </head><body class="pricing-body"><main class="pricing-wrap">
 <header class="pricing-head"><a class="brand" href="index.php"><span class="brand-mark small">م</span><span>مدار<small>مدیریت شخصی</small></span></a><a class="pricing-back" href="index.php">بازگشت به اپ ←</a></header>
 <section class="pricing-hero"><p class="eyebrow">شفافیت، قبل از هر چیز</p><h1>تعرفه‌های مدار</h1><p>مدار را مرحله‌به‌مرحله می‌سازیم؛ فعلاً هستهٔ اصلی مدیریت مالی و کارهای شخصی رایگان است. قیمت هیچ قابلیت آینده‌ای را قبل از آماده‌شدن و اعلام رسمی، قطعی فرض نکن.</p></section>
