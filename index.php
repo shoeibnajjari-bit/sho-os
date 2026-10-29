@@ -56,7 +56,7 @@ function normalizePhone(string $v): ?string {
 }
 function csrf(): string { if (empty($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(32)); return $_SESSION['csrf']; }
 function requireCsrf(): void { if (!hash_equals((string)($_SESSION['csrf'] ?? ''), (string)($_POST['csrf'] ?? ''))) { http_response_code(403); exit('درخواست نامعتبر است. صفحه را تازه‌سازی کن.'); } }
-function redirectHome(): never { $p=(string)($_GET['page']??'home'); $allowed=['home','finance','tasks','budgets','transactions','profile','admin']; header('Location: index.php'.($p!=='home'&&in_array($p,$allowed,true)?'?page='.$p:'')); exit; }
+function redirectHome(): never { $p=(string)($_GET['page']??'home'); $allowed=['home','finance','tasks','budgets','transactions','profile','settings','admin']; header('Location: index.php'.($p!=='home'&&in_array($p,$allowed,true)?'?page='.$p:'')); exit; }
 $error = '';
 if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action'] ?? '')==='register') {
   requireCsrf();
