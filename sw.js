@@ -1,8 +1,9 @@
-const CACHE='madar-static-v30';
+const CACHE='madar-static-v31';
 const STATIC_PATHS=new Set([
   '/assets/app.css',
   '/assets/app.js',
   '/assets/nav-settings-polish.css',
+  '/assets/analytics.css',
   '/assets/icon.svg',
   '/manifest.webmanifest'
 ]);
