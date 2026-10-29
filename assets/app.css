@@ -104,3 +104,6 @@ html{scroll-behavior:smooth;scroll-padding-top:90px}body{min-width:320px;overflo
 .settings-preview p{margin:3px 0 0;color:var(--muted);font-size:12px}
 .preview-dot{width:13px;height:13px;flex:none;border-radius:50%;background:var(--green);box-shadow:0 0 0 5px color-mix(in srgb,var(--green) 20%,transparent)}
 @media(max-width:600px){.theme-options{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.theme-option{padding:10px}}
+
+/* CRUD and dedicated settings/profile pages */
+.row-actions{white-space:nowrap}.row-actions form{display:inline-block;margin-inline-start:6px}.edit-record{margin-bottom:14px}.edit-record .section-head{display:flex;align-items:center;justify-content:space-between}.task-copy .text-button{display:inline-block;margin-top:5px;font-size:11px}.task-form .ghost{align-self:center;text-align:center}.settings-panel{margin-bottom:20px}
