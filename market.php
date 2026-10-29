@@ -40,7 +40,7 @@ function marketCachePath(): string
     $dir = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR);
     // Isolate per install path so multiple apps on one host do not collide.
     $key = substr(hash('sha256', __DIR__), 0, 16);
-    return $dir . DIRECTORY_SEPARATOR . 'madar-market-' . $key . '.json';
+    return $dir . DIRECTORY_SEPARATOR . 'madar-market-' . $key . '-v2.json';
 }
 
 function marketReadCache(): ?array
@@ -135,57 +135,62 @@ function marketFind(array $current, array $candidates, string $pattern): ?array
     return null;
 }
 
-function marketBuildPayload(array $current): array
+function marketBuildPayload(array $source): array
 {
-    $specs = [
-        ['label' => 'طلای ۱۸ عیار', 'icon' => '✦', 'unit' => 'هر گرم · عیار ۷۵۰', 'keys' => ['geram18', 'gold_18', 'geram18_toman'], 'pattern' => '/(^|_)geram18($|_)/i'],
-        ['label' => 'دلار آزاد', 'icon' => '＄', 'unit' => 'بازار آزاد ایران', 'keys' => ['price_dollar_rl', 'usd', 'price_dollar_rl_toman'], 'pattern' => '/(^|_)price_dollar_rl($|_)/i'],
-        ['label' => 'تتر (USDT)', 'icon' => '₮', 'unit' => 'هر تتر به تومان', 'keys' => ['crypto-tether', 'crypto_usdt', 'usdt', 'tether', 'price_usdt'], 'pattern' => '/(tether|usdt)/i'],
-        ['label' => 'بیت‌کوین (BTC)', 'icon' => '₿', 'unit' => 'هر بیت‌کوین به تومان', 'keys' => ['crypto-bitcoin', 'crypto_btc', 'btc', 'bitcoin', 'price_bitcoin'], 'pattern' => '/(bitcoin|(^|[_-])btc($|[_-]))/i'],
-    ];
-    $items = [];
-    foreach ($specs as $spec) {
-        $found = marketFind($current, $spec['keys'], $spec['pattern']);
-        if (!$found) {
-            $items[] = [
-                'label' => $spec['label'],
-                'icon' => $spec['icon'],
-                'unit' => $spec['unit'],
-                'price' => null,
-                'change' => null,
-                'available' => false,
-            ];
-            continue;
-        }
-        // TGJU's Iranian market feed reports these local prices in rial; convert to toman.
-        $rial = $found['value'];
-        $price = $rial / 10;
-        $change = null;
-        foreach (['dp', 'change_percent', 'changePercent', 'percent'] as $ck) {
-            if (isset($found['row'][$ck]) && is_numeric($found['row'][$ck])) {
-                $change = (float)$found['row'][$ck];
-                break;
+    $data = $source['data']['categories'] ?? null;
+    if (!is_array($data)) {
+        throw new RuntimeException('ساختار دادهٔ قیمت معتبر نیست.');
+    }
+    $bySymbol = [];
+    foreach ($data as $rows) {
+        if (!is_array($rows)) continue;
+        foreach ($rows as $row) {
+            if (is_array($row) && isset($row['symbol'])) {
+                $bySymbol[(string)$row['symbol']] = $row;
             }
         }
+    }
+    // Exact, documented symbols only. Do not guess by substring or accidentally
+    // select a different market with a similar name.
+    $specs = [
+        ['symbol' => 'GOLD_18K_IRR', 'label' => 'طلای ۱۸ عیار', 'icon' => '✦', 'unit' => 'هر گرم · تومان', 'source' => 'TGJU'],
+        ['symbol' => 'USD_IRR_FREE', 'label' => 'دلار آزاد', 'icon' => '＄', 'unit' => 'هر دلار · تومان', 'source' => 'TGJU'],
+        ['symbol' => 'USDT_IRR', 'label' => 'تتر (USDT)', 'icon' => '₮', 'unit' => 'هر تتر · تومان', 'source' => 'Nobitex'],
+        ['symbol' => 'BTC_IRR', 'label' => 'بیت‌کوین (BTC)', 'icon' => '₿', 'unit' => 'هر بیت‌کوین · تومان', 'source' => 'Nobitex'],
+    ];
+    $items = [];
+    $timestamps = [];
+    $hasStale = false;
+    foreach ($specs as $spec) {
+        $row = $bySymbol[$spec['symbol']] ?? null;
+        $price = is_array($row) && isset($row['price']) && is_numeric($row['price']) ? (float)$row['price'] : null;
+        $stamp = is_array($row) ? (string)($row['timestamp'] ?? '') : '';
+        $stale = !is_array($row) || !empty($row['stale']) || ($stamp !== '' && strtotime($stamp) < time() - 172800);
+        $available = $price !== null && $price > 0 && is_finite($price) && !$stale;
+        if ($stamp !== '') $timestamps[] = $stamp;
+        $hasStale = $hasStale || $stale;
         $items[] = [
+            'symbol' => $spec['symbol'],
             'label' => $spec['label'],
             'icon' => $spec['icon'],
             'unit' => $spec['unit'],
-            'price' => round($price, 2),
-            'change' => $change,
-            'available' => true,
-            'sourceKey' => $found['key'],
+            'price' => $available ? round($price, 2) : null,
+            'change' => is_array($row) && isset($row['change_pct']) && is_numeric($row['change_pct']) ? (float)$row['change_pct'] : null,
+            'available' => $available,
+            'quoteTime' => $stamp,
+            'source' => $spec['source'],
+            'stale' => $stale,
         ];
     }
-    $available = count(array_filter($items, static fn($item) => $item['available']));
-    if ($available === 0) {
-        throw new RuntimeException('قیمت‌های درخواستی در پاسخ منبع پیدا نشدند.');
+    if (count(array_filter($items, static fn($item) => $item['available'])) === 0) {
+        throw new RuntimeException('هیچ نرخ تازه و معتبری از منبع دریافت نشد.');
     }
     return [
         'success' => true,
         'fetchedAt' => date(DATE_ATOM),
-        'source' => 'TGJU',
-        'stale' => false,
+        'source' => 'Iran Market Data (TGJU / Nobitex)',
+        'stale' => $hasStale,
+        'message' => $hasStale ? 'برخی نرخ‌ها قدیمی یا نامعتبرند و برای جلوگیری از نمایش قیمت گمراه‌کننده پنهان شده‌اند.' : null,
         'items' => $items,
     ];
 }
@@ -213,12 +218,8 @@ if ($cached !== null && ($now - $cached['savedAt']) < MARKET_CACHE_TTL) {
 }
 
 try {
-    $data = marketFetch('https://call1.tgju.org/ajax.json?madar=' . rawurlencode((string)time()));
-    $current = $data['current'] ?? $data['data']['current'] ?? null;
-    if (!is_array($current)) {
-        throw new RuntimeException('ساختار داده‌های بازار تغییر کرده است.');
-    }
-    $payload = marketBuildPayload($current);
+    $data = marketFetch('https://raw.githubusercontent.com/iran-market/iran-market.github.io/main/data/latest-toman.json?madar=' . rawurlencode((string)time()));
+    $payload = marketBuildPayload($data);
     marketWriteCache($payload);
     marketRespond($payload, false);
 } catch (Throwable $e) {
