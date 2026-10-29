@@ -147,3 +147,39 @@ html{scroll-behavior:smooth;scroll-padding-top:90px}body{min-width:320px;overflo
 .goal-track{height:11px}
 .goal-track span{background:linear-gradient(90deg,#8d5cc2,#d4b4ff)}
 @media(max-width:650px){.container{padding:18px 12px 92px}.panel{padding:15px}.welcome{align-items:flex-start;gap:12px}.welcome h1{font-size:23px}.budget-manager .budget-form{grid-template-columns:1fr}.budget-manager .budget-form button{width:100%}.settings-inner{padding:13px}.settings-inner .section-head{align-items:flex-start}.admin-user>*{max-width:100%}}
+
+
+/* Right-side navigation drawer: logo is the single menu trigger */
+.brand.menu-trigger{border:0;background:transparent;color:inherit;text-decoration:none;cursor:pointer;text-align:right;font:inherit;padding:0;display:inline-flex;align-items:center;gap:10px;position:relative;z-index:1102}
+.main-nav{position:fixed!important;z-index:1101;inset:0 0 0 auto!important;width:min(340px,88vw);height:100dvh;max-height:none!important;overflow-y:auto;display:flex!important;flex-direction:column;gap:5px;padding:calc(22px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));background:var(--panel);border-inline-start:1px solid var(--line);box-shadow:-22px 0 60px rgba(0,0,0,.3);transform:translateX(110%);visibility:hidden;transition:transform .24s ease,visibility .24s ease;overscroll-behavior:contain}
+.main-nav.is-open{transform:translateX(0);visibility:visible;display:flex!important}
+.main-nav>a{display:flex;align-items:center;gap:12px;min-height:46px;padding:11px 13px;border:1px solid transparent;border-radius:12px;color:var(--text);text-decoration:none;font-size:14px}
+.main-nav>a span{display:grid;place-items:center;width:28px;height:28px;flex:none;border-radius:9px;background:var(--panel2);color:var(--amber);font-size:18px}
+.main-nav>a:hover,.main-nav>a:focus-visible{background:var(--panel2);border-color:var(--line);outline:none}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:5px 4px 18px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+.drawer-head .eyebrow{margin:0 0 5px}.drawer-head strong{font-size:19px}
+.drawer-close{width:38px;height:38px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);color:var(--text);font-size:25px;cursor:pointer}
+.drawer-backdrop{position:fixed;inset:0;z-index:1100;background:rgba(8,4,12,.58);border:0;opacity:0;visibility:hidden;transition:opacity .24s ease,visibility .24s ease}
+.drawer-backdrop.is-visible{opacity:1;visibility:visible}
+body.drawer-open{overflow:hidden}
+@media(prefers-reduced-motion:reduce){.main-nav,.drawer-backdrop{transition:none}}
+/* Settings hierarchy and card rhythm */
+.settings-panel{padding:clamp(16px,3vw,26px)}
+.settings-panel>.section-head{padding-bottom:15px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.settings-group-title{display:flex;align-items:center;gap:9px;margin:26px 0 10px;font-size:14px;font-weight:750}
+.settings-inner{margin:0 0 14px;padding:clamp(14px,2.5vw,20px);background:var(--panel);border:1px solid var(--line);border-radius:16px}
+.settings-inner .section-head{margin-bottom:12px}
+.settings-inner .section-head h2{font-size:17px;margin:0}
+.settings-inner label{display:grid;gap:7px;min-width:0;color:var(--muted);font-size:12px}
+.settings-inner input:not([type=checkbox]),.settings-inner select{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+.settings-inner .primary,.settings-inner .ghost{min-height:42px}
+.settings-panel>.settings-inner{box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.settings-panel .theme-option{transition:border-color .16s ease,transform .16s ease}
+.settings-panel .theme-option:hover{transform:translateY(-2px)}
+.settings-panel .theme-option[aria-pressed=true]{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber)}
+.settings-panel .settings-preview{border:1px solid var(--line)}
+.settings-panel .logout-form{display:flex;justify-content:flex-start}
+.settings-panel .admin-user{gap:14px}
+.settings-panel .admin-user>div{display:grid;gap:5px;min-width:0}
+.settings-panel .admin-user small{color:var(--muted);overflow-wrap:anywhere}
+@media(max-width:600px){.main-nav{width:min(340px,90vw)}.settings-group-title{margin-top:22px}.settings-inner .profile-form{grid-template-columns:1fr}.settings-panel .theme-options{grid-template-columns:repeat(2,minmax(0,1fr))}}
