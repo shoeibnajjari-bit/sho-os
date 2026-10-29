@@ -19,6 +19,8 @@ $editTransaction = null;
 $advice = 'ثبت منظم تراکنش‌ها را ادامه بده؛ با چند هفته داده، الگوی هزینه‌ها روشن‌تر می‌شود.';
 $dailyBurn = 0.0;
 $cashRunway = null;
+$monthlyTrend = [];
+$analyticsTxCount = 0;
 $savingsRate = null;
 $badgeTiers = [];
 $badgeEligible = false;
@@ -38,7 +40,7 @@ $txPages = 1;
 $txCategories = [];
 $categories = [];
 
-$needsFinanceOverview = in_array($page, ['home','finance'], true);
+$needsFinanceOverview = in_array($page, ['home','finance','analytics'], true);
 if ($needsFinanceOverview) {
     [$monthStart, $monthEnd] = jalaliMonthRange($today);
     $stmt = $pdo->prepare("SELECT COALESCE(SUM(CASE WHEN type='income' THEN amount ELSE 0 END),0) income, COALESCE(SUM(CASE WHEN type='expense' THEN amount ELSE 0 END),0) expense FROM transactions WHERE user_id=? AND transaction_date BETWEEN ? AND ?");
@@ -70,14 +72,34 @@ if ($needsFinanceOverview) {
         $budgets = $stmt->fetchAll();
     }
 
-    if ($page === 'home') {
+    if (in_array($page, ['home','analytics'], true)) {
         $rollingStart = date('Y-m-d', strtotime('-29 days'));
-        $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount),0) FROM transactions WHERE user_id=? AND type='expense' AND transaction_date BETWEEN ? AND ?");
+        $stmt = $pdo->prepare("SELECT COALESCE(SUM(CASE WHEN type='expense' THEN amount ELSE 0 END),0) total_expense, COUNT(*) tx_count FROM transactions WHERE user_id=? AND transaction_date BETWEEN ? AND ?");
         $stmt->execute([$userId, $rollingStart, $today]);
-        $last30Expense = (int)$stmt->fetchColumn();
+        $rollingStats = $stmt->fetch() ?: ['total_expense'=>0,'tx_count'=>0];
+        $last30Expense = (int)$rollingStats['total_expense'];
+        $analyticsTxCount = (int)$rollingStats['tx_count'];
         $dailyBurn = $last30Expense / 30;
         $cashRunway = $dailyBurn > 0 ? max(0, (int)floor($balance / $dailyBurn)) : null;
         $savingsRate = (int)$month['income'] > 0 ? round($monthNet / (int)$month['income'] * 100) : null;
+
+        if ($page === 'analytics') {
+            $trendStart = date('Y-m-01', strtotime('-5 months', strtotime(date('Y-m-01'))));
+            $trendStmt = $pdo->prepare("SELECT DATE_FORMAT(transaction_date,'%Y-%m') ym, COALESCE(SUM(CASE WHEN type='income' THEN amount ELSE 0 END),0) income, COALESCE(SUM(CASE WHEN type='expense' THEN amount ELSE 0 END),0) expense FROM transactions WHERE user_id=? AND transaction_date>=? AND transaction_date<=? GROUP BY ym ORDER BY ym");
+            $trendStmt->execute([$userId, $trendStart, $today]);
+            $trendRows = [];
+            foreach ($trendStmt->fetchAll() as $trendRow) $trendRows[$trendRow['ym']] = $trendRow;
+            for ($offset = 5; $offset >= 0; $offset--) {
+                $monthIso = date('Y-m-01', strtotime('-'.$offset.' months', strtotime(date('Y-m-01'))));
+                $monthKey = date('Y-m', strtotime($monthIso));
+                $trend = $trendRows[$monthKey] ?? ['income'=>0,'expense'=>0];
+                $monthlyTrend[] = [
+                    'label' => jalaliDate($monthIso),
+                    'income' => (int)$trend['income'],
+                    'expense' => (int)$trend['expense']
+                ];
+            }
+        }
 
         $badgeTiers = [
             ['min'=>0,'name'=>'شروع‌کننده','icon'=>'✦','class'=>'starter','description'=>'شروع مسیر آگاهانهٔ مالی'],
