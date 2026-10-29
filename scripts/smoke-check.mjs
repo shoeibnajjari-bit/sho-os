@@ -9,6 +9,8 @@ const fail = message => {
 };
 const index = read('index.php');
 const worker = read('sw.js');
+const appJs = read('assets/app.js');
+const schema = read('schema.sql');
 
 for (const file of ['index.php', 'assets/app.css', 'assets/app.js', 'assets/nav-settings-polish.css', 'sw.js', 'manifest.webmanifest']) {
   if (!fs.existsSync(path.join(root, file)) || fs.statSync(path.join(root, file)).size === 0) fail('Required file missing or empty: ' + file);
@@ -70,8 +72,6 @@ if (!index.includes('category-manager')) fail('Category manager UI missing.');
 if (!index.includes('class="nav-submenu finance-submenu"') || !index.includes('page=market')) fail('Finance submenu or market route missing.');
 if (!index.includes('page=transactions') || !index.includes('page=goals') || !index.includes('page=checks') || !index.includes('page=cards')) fail('Finance submenu is missing a required destination.');
 const market = read('market.php');
-const appJs = read('assets/app.js');
-const schema = read('schema.sql');
 for (const symbol of ['GOLD_18K_IRR', 'USD_IRR_FREE', 'USDT_IRR', 'BTC_IRR']) if (!market.includes(symbol)) fail('Market proxy missing exact symbol: ' + symbol);
 if (!market.includes('latest-toman.json')) fail('Market proxy is not using the validated current-price JSON source.');
 if (!appJs.includes('GOLD_18K_IRR.json') || !appJs.includes('BTC_USD.json') || !appJs.includes('USDT_USD.json')) fail('Yearly history chart data sources missing.');
