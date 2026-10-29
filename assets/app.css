@@ -213,3 +213,5 @@ body.drawer-open{overflow:hidden}
 @media(max-width:760px){.market-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.market-hero{align-items:flex-start;flex-direction:column}.market-card{padding:14px}}@media(max-width:360px){.market-grid{grid-template-columns:1fr}}
 
 .market-card.unavailable{opacity:.65}.market-card.unavailable>strong{font-size:18px}
+
+.pagination{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:18px 0;padding:12px;border-top:1px solid var(--line)}.pagination span{color:var(--muted);font-size:13px}.pagination a{display:inline-flex;align-items:center;justify-content:center;padding:8px 14px;border:1px solid var(--line);border-radius:10px;text-decoration:none}
