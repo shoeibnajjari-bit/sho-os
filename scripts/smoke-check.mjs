@@ -42,6 +42,21 @@ for (const file of ['/assets/app.css', '/assets/app.js', '/assets/nav-settings-p
 
 const backup = read('backup.php');
 const restore = read('restore.php');
+// Finance navigation must survive the drawer regrouping script.
+if (!appJs.includes("const financeMenu=menu.querySelector(':scope > details.finance-submenu')")) fail('Navigation grouping no longer preserves the finance submenu node.');
+if (!appJs.includes("addGroup('امور مالی',[financeMenu]")) fail('Finance submenu is not included in the rebuilt navigation.');
+if (appJs.includes("menu.innerHTML=''")) fail('Destructive menu rebuild detected; it can drop nested details elements.');
+const expectedFinanceLabels=['نمای کلی مالی','تراکنش‌ها','سقف بودجه','اهداف پس‌انداز','مدیریت چک‌ها','کارت‌های بانکی','مدیریت دسته‌بندی‌ها','قیمت و روند بازار'];
+let lastFinanceIndex=-1;
+for(const label of expectedFinanceLabels){
+  const pos=index.indexOf(label);
+  if(pos<0)fail('Finance submenu item missing: '+label);
+  if(pos<=lastFinanceIndex)fail('Finance submenu item order is incorrect near: '+label);
+  lastFinanceIndex=pos;
+}
+if (!index.includes('assets/app.js?v=1.10')) fail('Application JS cache-buster was not updated.');
+if (!index.includes('assets/nav-settings-polish.css?v=3')) fail('Navigation CSS cache-buster was not updated.');
+
 if (!index.includes("page=categories") || !index.includes("action\" value=\"add_category")) fail('Category management route/action missing.');
 if (!index.includes('CREATE TABLE IF NOT EXISTS categories')) fail('Per-user category table migration missing.');
 if (!index.includes('rename_category') || !index.includes('delete_category')) fail('Category rename/delete actions missing.');
