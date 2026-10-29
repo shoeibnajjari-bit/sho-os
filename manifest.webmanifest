@@ -1,7 +1,7 @@
 {
   "name": "مدار - مدیریت شخصی",
   "short_name": "مدار",
-  "description": "مدیریت پول، بودجه و وظایف",
+  "description": "مدیریت مالی هوشمند، بودجه و وظایف شخصی",
   "lang": "fa",
   "dir": "rtl",
   "start_url": "./index.php",
