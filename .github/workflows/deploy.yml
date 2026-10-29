@@ -29,6 +29,7 @@ jobs:
           php -l index.php
           php -l export.php
           php -l backup.php
+          php -l restore.php
           php -l market.php
           php -l pricing.php
           php -l install.php
