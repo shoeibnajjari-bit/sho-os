@@ -42,3 +42,22 @@ let installPrompt;const installBtn=document.getElementById('installBtn');window.
  document.addEventListener('click',e=>{if(!menu.contains(e.target)&&!button.contains(e.target))close()});
  document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
 })();
+
+/* Persistent visual theme settings */
+(()=> {
+ const allowed=['forest','midnight','plum','sand'];
+ const root=document.documentElement;
+ const readTheme=()=>{try{const t=localStorage.getItem('madar-theme');return allowed.includes(t)?t:'forest'}catch(_){return 'forest'}};
+ const applyTheme=(theme,save=false)=>{
+  if(!allowed.includes(theme))theme='forest';
+  root.dataset.theme=theme;
+  if(save){try{localStorage.setItem('madar-theme',theme)}catch(_){}}
+  document.querySelectorAll('[data-theme-choice]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.themeChoice===theme)));
+ };
+ applyTheme(readTheme());
+ document.addEventListener('click',e=>{
+  const choice=e.target.closest('[data-theme-choice]');
+  if(choice){applyTheme(choice.dataset.themeChoice,true);return}
+  if(e.target.closest('[data-theme-reset]')){applyTheme('forest',true)}
+ });
+})();
