@@ -12,6 +12,15 @@ try {
     PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_EMULATE_PREPARES=>false
   ]);
 } catch (Throwable $e) { http_response_code(500); exit('اتصال دیتابیس برقرار نشد. تنظیمات config.php را بررسی کن.'); }
+try {
+  $userColumns=$pdo->query('SHOW COLUMNS FROM users')->fetchAll(PDO::FETCH_COLUMN);
+  if (!in_array('display_name',$userColumns,true)) $pdo->exec("ALTER TABLE users ADD COLUMN display_name VARCHAR(100) NOT NULL DEFAULT ''");
+  if (!in_array('role',$userColumns,true)) $pdo->exec("ALTER TABLE users ADD COLUMN role ENUM('admin','user') NOT NULL DEFAULT 'user'");
+  if (!in_array('is_active',$userColumns,true)) $pdo->exec("ALTER TABLE users ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1");
+  $pdo->exec("CREATE TABLE IF NOT EXISTS login_attempts (ip_hash CHAR(64) NOT NULL PRIMARY KEY, attempts INT UNSIGNED NOT NULL DEFAULT 0, window_started DATETIME NOT NULL, blocked_until DATETIME NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+  $pdo->exec("UPDATE users SET display_name=username WHERE display_name=''");
+  if ((int)$pdo->query("SELECT COUNT(*) FROM users WHERE role='admin'")->fetchColumn()===0) $pdo->exec("UPDATE users SET role='admin' WHERE id=(SELECT id FROM (SELECT id FROM users ORDER BY id ASC LIMIT 1) first_user)");
+} catch (Throwable $e) { http_response_code(500); exit('آماده‌سازی امن پایگاه داده ناموفق بود. با پشتیبانی فنی تماس بگیر.'); }
 function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
 function latinDigits(string $v): string { return strtr($v,['۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4','۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9','٠'=>'0','١'=>'1','٢'=>'2','٣'=>'3','٤'=>'4','٥'=>'5','٦'=>'6','٧'=>'7','٨'=>'8','٩'=>'9']); }
 function faDigits(string $v): string { return strtr($v,['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']); }
