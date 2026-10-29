@@ -87,7 +87,7 @@ document.addEventListener('submit',async e=>{const form=e.target.closest('form[d
    grid.innerHTML=data.items.map(item=>{
     const delta=Number(item.change||0),hasDelta=item.change!==null&&Number.isFinite(delta);
     const direction=delta>0?'up':delta<0?'down':'flat',sign=delta>0?'+':'';
-    return '<article class="market-card '+direction+'"><div class="market-card-top"><span class="market-icon">'+item.icon+'</span><span class="market-change '+direction+'">'+(hasDelta?sign+fmt(delta)+'٪':'تغییر نامشخص')+'</span></div><p>'+item.label+'</p><strong>'+fmt(item.price)+'</strong><small>تومان</small><div class="market-card-foot">'+(item.unit||'بازار آزاد')+'</div></article>';
+    return '<article class="market-card '+(item.available?direction:'unavailable')+'"><div class="market-card-top"><span class="market-icon">'+item.icon+'</span><span class="market-change '+direction+'">'+(hasDelta?sign+fmt(delta)+'٪':'تغییر نامشخص')+'</span></div><p>'+item.label+'</p><strong>'+(item.available?fmt(item.price):'در دسترس نیست')+'</strong><small>'+(item.available?'تومان':'منبع این نرخ را برنگرداند')+'</small><div class="market-card-foot">'+(item.unit||'بازار آزاد')+'</div></article>';
    }).join('');
    updated.textContent='آخرین دریافت: '+new Intl.DateTimeFormat('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(data.fetchedAt));
   }catch(e){if(!grid.querySelector('.market-card'))grid.innerHTML='';grid.insertAdjacentHTML('beforeend','<div class="market-error" role="status">قیمت‌ها فعلاً در دسترس نیستند. چند لحظه دیگر دوباره تلاش کن.</div>');if(updated)updated.textContent='اتصال به منبع قیمت برقرار نشد.'}
