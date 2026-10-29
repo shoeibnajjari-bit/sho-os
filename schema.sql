@@ -1,7 +1,10 @@
 CREATE TABLE IF NOT EXISTS users (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(80) NOT NULL UNIQUE,
+  display_name VARCHAR(100) NOT NULL DEFAULT '',
   password_hash VARCHAR(255) NOT NULL,
+  role ENUM('admin','user') NOT NULL DEFAULT 'user',
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -38,3 +41,10 @@ CREATE TABLE IF NOT EXISTS budgets (
   UNIQUE KEY uq_budget_user_category (user_id, category),
   CONSTRAINT fk_budget_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS login_attempts (
+  ip_hash CHAR(64) NOT NULL PRIMARY KEY,
+  attempts INT UNSIGNED NOT NULL DEFAULT 0,
+  window_started DATETIME NOT NULL,
+  blocked_until DATETIME NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
