@@ -44,14 +44,14 @@ for (const file of ['/assets/app.css', '/assets/app.js', '/assets/nav-settings-p
 }
 
 if (worker.indexOf('cache.match(cacheKey)') === -1 || worker.indexOf('cache.match(cacheKey)') > worker.indexOf('fetch(request')) fail('Static assets should use cache-first delivery.');
-if (/fonts\\.googleapis\\.com|fonts\\.gstatic\\.com/i.test(appCss)) fail('App CSS must not block rendering on remote font services.');
+if (/fonts\.googleapis\.com|fonts\.gstatic\.com/i.test(appCss)) fail('App CSS must not block rendering on remote font services.');
 const mobileNavStart = index.indexOf('<nav class="mobile-nav"');
 const mobileNavEnd = index.indexOf('</nav>', mobileNavStart);
 const mobileNav = mobileNavStart >= 0 && mobileNavEnd > mobileNavStart ? index.slice(mobileNavStart, mobileNavEnd) : '';
 if (!mobileNav) fail('Mobile footer navigation is missing.');
 if (mobileNav.includes('page=finance')) fail('Finance card shortcut should be replaced by the dedicated analytics destination.');
 for (const href of ['href="index.php"', 'href="index.php?page=analytics"', 'href="index.php?page=tasks"', 'href="index.php?page=settings"']) if (!mobileNav.includes(href)) fail('Mobile footer navigation missing: ' + href);
-if ((mobileNav.match(/<a\\b/g)||[]).length !== 4) fail('Mobile footer should contain exactly four shortcuts.');
+if ((mobileNav.match(/<a\b/g)||[]).length !== 4) fail('Mobile footer should contain exactly four shortcuts.');
 
 const backup = read('backup.php');
 const restore = read('restore.php');
