@@ -36,6 +36,7 @@ jobs:
           php -l config.example.php
           node --check assets/app.js
           node --check sw.js
+          node scripts/smoke-check.mjs
           python -m json.tool manifest.webmanifest > /dev/null
 
       - name: Validate deployment secrets
