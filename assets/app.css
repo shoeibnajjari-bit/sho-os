@@ -69,3 +69,13 @@ html{scroll-behavior:smooth;scroll-padding-top:90px}body{min-width:320px;overflo
 /* Menu state and section pages */
 .main-nav.is-open{display:grid}.menu-toggle{position:relative;z-index:42}.main-nav{transition:opacity .15s ease}.mobile-nav{grid-template-columns:repeat(4,minmax(0,1fr))}.mobile-nav a{min-width:0}
 @media(max-width:760px){.main-nav.is-open{display:grid}.mobile-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}.main-nav{max-height:70vh;overflow-y:auto}}
+
+
+/* Transaction management filters */
+.transaction-filters{display:grid;grid-template-columns:minmax(180px,2fr) minmax(120px,1fr) minmax(140px,1fr) auto auto;gap:10px;align-items:end;padding:14px;margin:0 0 8px;background:var(--bg);border:1px solid var(--line);border-radius:14px}
+.transaction-filters label{display:grid;gap:6px;color:var(--muted);font-size:12px;min-width:0}
+.transaction-filters input,.transaction-filters select{width:100%;min-width:0;padding:10px 11px;background:var(--panel);border:1px solid var(--line);border-radius:9px;color:var(--text);font:inherit;font-size:12px}
+.transaction-filters .primary{padding:10px 14px;white-space:nowrap}
+.filter-reset{font-size:12px;color:var(--amber);padding:9px 2px;white-space:nowrap}
+@media(max-width:760px){.transaction-filters{grid-template-columns:1fr 1fr;gap:9px;padding:11px}.transaction-filters label:first-of-type{grid-column:1/-1}.transaction-filters .primary{grid-column:auto}.filter-reset{justify-self:start}}
+@media(max-width:390px){.transaction-filters{grid-template-columns:1fr}.transaction-filters label:first-of-type{grid-column:auto}.transaction-filters .primary{width:100%}}
