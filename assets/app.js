@@ -76,29 +76,51 @@ document.addEventListener('submit',async e=>{const form=e.target.closest('form[d
 
 /* Market board: quotes are served by the same-origin PHP proxy and refreshed every minute. */
 (()=>{
- const grid=document.getElementById('marketGrid');if(!grid)return;
+ const grid=document.getElementById('marketGrid');
+ if(!grid)return;
  const updated=document.getElementById('marketUpdated'),refresh=document.getElementById('refreshMarket');
  const fmt=n=>new Intl.NumberFormat('fa-IR',{maximumFractionDigits:2}).format(n);
+ const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+ let loading=false;
  async function loadMarket(){
+  // A slow response must not overlap the next timer tick or a manual refresh.
+  if(loading)return;
+  loading=true;
   if(refresh){refresh.disabled=true;refresh.textContent='در حال دریافت…'}
   try{
-   const r=await fetch('market.php',{cache:'no-store',headers:{Accept:'application/json'}});
-   const data=await r.json();if(!r.ok||!data.success)throw new Error(data.message||'قیمت‌ها فعلاً دریافت نشدند.');
+   const r=await fetch('market.php',{cache:'no-store',headers:{Accept:'application/json'},credentials:'same-origin'});
+   const data=await r.json();
+   if(!r.ok||!data.success||!Array.isArray(data.items))throw new Error(data.message||'قیمت‌ها فعلاً دریافت نشدند.');
    grid.innerHTML=data.items.map(item=>{
-    const delta=Number(item.change||0),hasDelta=item.change!==null&&Number.isFinite(delta);
-    const direction=delta>0?'up':delta<0?'down':'flat',sign=delta>0?'+':'';
-    return '<article class="market-card '+(item.available?direction:'unavailable')+'"><div class="market-card-top"><span class="market-icon">'+item.icon+'</span><span class="market-change '+direction+'">'+(hasDelta?sign+fmt(delta)+'٪':'تغییر نامشخص')+'</span></div><p>'+item.label+'</p><strong>'+(item.available?fmt(item.price):'در دسترس نیست')+'</strong><small>'+(item.available?'تومان':'منبع این نرخ را برنگرداند')+'</small><div class="market-card-foot">'+(item.unit||'بازار آزاد')+'</div></article>';
+    const price=Number(item.price);
+    const available=Boolean(item.available)&&item.price!==null&&item.price!==''&&Number.isFinite(price);
+    const delta=Number(item.change),hasDelta=item.change!==null&&item.change!==''&&Number.isFinite(delta);
+    const direction=hasDelta?(delta>0?'up':delta<0?'down':'flat'):'flat';
+    const sign=delta>0?'+':'';
+    return '<article class="market-card '+(available?direction:'unavailable')+'"><div class="market-card-top"><span class="market-icon">'+esc(item.icon||'◈')+'</span><span class="market-change '+direction+'">'+(hasDelta?sign+fmt(delta)+'٪':'تغییر نامشخص')+'</span></div><p>'+esc(item.label||'بدون عنوان')+'</p><strong>'+(available?fmt(price):'در دسترس نیست')+'</strong><small>'+(available?'تومان':'منبع این نرخ را برنگرداند')+'</small><div class="market-card-foot">'+esc(item.unit||'بازار آزاد')+'</div></article>';
    }).join('');
    const timeLabel=new Intl.DateTimeFormat('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(data.fetchedAt||Date.now()));
-   if(updated){
-    updated.textContent=data.stale
-      ?('نمایش قیمت ذخیره‌شده · '+timeLabel+(data.message?' · '+data.message:''))
+   if(updated)updated.textContent=data.stale
+      ?('نمایش قیمت ذخیره‌شده · '+timeLabel+(data.message?' · '+String(data.message):''))
       :('آخرین دریافت: '+timeLabel);
+  }catch(e){
+   grid.querySelector('.market-error')?.remove();
+   if(!grid.querySelector('.market-card')){
+    const error=document.createElement('div');
+    error.className='market-error';
+    error.setAttribute('role','status');
+    error.textContent='قیمت‌ها فعلاً در دسترس نیستند. چند لحظه دیگر دوباره تلاش کن.';
+    grid.appendChild(error);
    }
-  }catch(e){if(!grid.querySelector('.market-card'))grid.innerHTML='';grid.insertAdjacentHTML('beforeend','<div class="market-error" role="status">قیمت‌ها فعلاً در دسترس نیستند. چند لحظه دیگر دوباره تلاش کن.</div>');if(updated)updated.textContent='اتصال به منبع قیمت برقرار نشد.'}
-  finally{if(refresh){refresh.disabled=false;refresh.textContent='به‌روزرسانی'}}
+   if(updated)updated.textContent='اتصال به منبع قیمت برقرار نشد.';
+  }finally{
+   loading=false;
+   if(refresh){refresh.disabled=false;refresh.textContent='به‌روزرسانی'}
+  }
  }
- refresh?.addEventListener('click',loadMarket);loadMarket();window.setInterval(loadMarket,60000);
+ refresh?.addEventListener('click',loadMarket);
+ loadMarket();
+ window.setInterval(loadMarket,60000);
 })();
 
 // Prevent accidental double submissions on regular POST forms.
