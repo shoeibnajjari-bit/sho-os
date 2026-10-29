@@ -73,3 +73,25 @@ document.addEventListener('submit',async e=>{const form=e.target.closest('form[d
  function runReminders(){if(!('Notification'in window)||Notification.permission!=='granted')return;const today=new Date().toISOString().slice(0,10),seen=JSON.parse(localStorage.getItem('madar-check-notified')||'{}');document.querySelectorAll('[data-check-reminder="1"][data-check-status="pending"]').forEach(row=>{const due=row.dataset.checkDue;if(!due)return;const delta=Math.round((Date.parse(due+'T00:00:00Z')-Date.parse(today+'T00:00:00Z'))/86400000);if(delta<0||delta>3)return;const key=row.dataset.checkId+'-'+today;if(seen[key])return;try{new Notification('یادآوری سررسید چک',{body:(row.dataset.checkType==='received'?'چک دریافتی':'چک صادرشده')+' · '+(delta===0?'سررسید امروز است.':'سررسید تا '+delta+' روز دیگر است.')});seen[key]=1}catch(e){}});const keys=Object.keys(seen);keys.slice(0,Math.max(0,keys.length-100)).forEach(k=>delete seen[k]);localStorage.setItem('madar-check-notified',JSON.stringify(seen));const version='madar-version-0.4';if(localStorage.getItem('madar-last-notice')!==version&&Notification.permission==='granted'){try{new Notification('مدار به‌روزرسانی شد',{body:'مدیریت چک‌ها، یادآوری سررسید و پشتیبان‌گیری اضافه شده است.'});localStorage.setItem('madar-last-notice',version)}catch(e){}}}
  checkPermission();runReminders();
 })();
+
+/* Market board: quotes are served by the same-origin PHP proxy and refreshed every minute. */
+(()=>{
+ const grid=document.getElementById('marketGrid');if(!grid)return;
+ const updated=document.getElementById('marketUpdated'),refresh=document.getElementById('refreshMarket');
+ const fmt=n=>new Intl.NumberFormat('fa-IR',{maximumFractionDigits:2}).format(n);
+ async function loadMarket(){
+  if(refresh){refresh.disabled=true;refresh.textContent='در حال دریافت…'}
+  try{
+   const r=await fetch('market.php',{cache:'no-store',headers:{Accept:'application/json'}});
+   const data=await r.json();if(!r.ok||!data.success)throw new Error(data.message||'قیمت‌ها فعلاً دریافت نشدند.');
+   grid.innerHTML=data.items.map(item=>{
+    const delta=Number(item.change||0),hasDelta=item.change!==null&&Number.isFinite(delta);
+    const direction=delta>0?'up':delta<0?'down':'flat',sign=delta>0?'+':'';
+    return '<article class="market-card '+direction+'"><div class="market-card-top"><span class="market-icon">'+item.icon+'</span><span class="market-change '+direction+'">'+(hasDelta?sign+fmt(delta)+'٪':'تغییر نامشخص')+'</span></div><p>'+item.label+'</p><strong>'+fmt(item.price)+'</strong><small>تومان</small><div class="market-card-foot">'+(item.unit||'بازار آزاد')+'</div></article>';
+   }).join('');
+   updated.textContent='آخرین دریافت: '+new Intl.DateTimeFormat('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(data.fetchedAt));
+  }catch(e){if(!grid.querySelector('.market-card'))grid.innerHTML='';grid.insertAdjacentHTML('beforeend','<div class="market-error" role="status">قیمت‌ها فعلاً در دسترس نیستند. چند لحظه دیگر دوباره تلاش کن.</div>');if(updated)updated.textContent='اتصال به منبع قیمت برقرار نشد.'}
+  finally{if(refresh){refresh.disabled=false;refresh.textContent='به‌روزرسانی'}}
+ }
+ refresh?.addEventListener('click',loadMarket);loadMarket();window.setInterval(loadMarket,60000);
+})();
