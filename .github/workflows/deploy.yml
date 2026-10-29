@@ -28,6 +28,11 @@ jobs:
         run: |
           php -l index.php
           php -l includes/helpers.php
+          php -l includes/category-sync.php
+          php -l includes/actions.php
+          php -l includes/page-data.php
+          php -l includes/daily-backup.php
+          php -l api/daily-backup.php
           php -l export.php
           php -l backup.php
           php -l restore.php
