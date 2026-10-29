@@ -39,6 +39,29 @@ jobs:
           node scripts/smoke-check.mjs
           python -m json.tool manifest.webmanifest > /dev/null
 
+      - name: Verify asset cache versions and private-route exclusions
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+
+          index = Path("index.php").read_text(encoding="utf-8")
+          worker = Path("sw.js").read_text(encoding="utf-8")
+          js = Path("assets/app.js").read_text(encoding="utf-8")
+          css_versions = set(re.findall(r'assets/app\\.css\\?v=([^"\\']+)', index))
+          js_versions = set(re.findall(r'assets/app\\.js\\?v=([^"\\']+)', index))
+          worker_versions = set(re.findall(r'sw\\.js\\?v=(\\d+)', index))
+          cache_match = re.search(r"const CACHE='madar-static-v(\\d+)'", worker)
+          assert len(css_versions) == 1, f"CSS cache-buster mismatch: {css_versions}"
+          assert len(js_versions) == 1, f"JS cache-buster mismatch: {js_versions}"
+          assert cache_match, "Service worker cache version missing"
+          assert worker_versions == {cache_match.group(1)}, f"Service worker URL/cache mismatch: {worker_versions}"
+          assert "if(!STATIC_PATHS.has(url.pathname))return;" in worker, "Static-asset allowlist guard missing"
+          assert "'/index.php'" not in worker and "'/'" not in worker, "Private/dynamic page must never be cached"
+          assert "data-task-filter" in js, "Task filter UI missing from app bundle"
+          print("Asset versions aligned; dynamic pages excluded from service-worker cache.")
+          PY
+
       - name: Validate deployment secrets
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
