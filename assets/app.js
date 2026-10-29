@@ -115,3 +115,72 @@ document.addEventListener('submit',event=>{
   if(submitter instanceof HTMLInputElement&&submitter.type==='submit')submitter.value='در حال ثبت…';
  }
 });
+
+/* Reorganize main drawer into labeled groups + active page highlight */
+(()=>{
+  const menu=document.getElementById('mainMenu');
+  if(!menu||menu.dataset.grouped==='1')return;
+  const head=menu.querySelector('.drawer-head');
+  const links=[...menu.querySelectorAll(':scope > a')];
+  if(links.length<3)return;
+
+  const groups=[
+    {label:'خانه و مالی', match:href=>{
+      const h=href.replace(location.origin,'');
+      return h==='/'||h.endsWith('index.php')||h.includes('page=finance')||h.includes('page=transactions')||h.includes('page=checks')||h.includes('page=goals')||h.includes('#budget');
+    }},
+    {label:'سازماندهی', match:href=>/page=(tasks|contacts|cards)/.test(href)},
+    {label:'ابزار و محصول', match:href=>/page=market|pricing\.php/.test(href)},
+    {label:'حساب', match:href=>/page=settings/.test(href)}
+  ];
+
+  const used=new Set();
+  const frag=document.createDocumentFragment();
+  if(head)frag.appendChild(head);
+
+  const page=(new URLSearchParams(location.search)).get('page')||'home';
+  groups.forEach((g,gi)=>{
+    const wrap=document.createElement('div');
+    wrap.className='nav-group'+(gi===groups.length-1?' nav-group-account':'');
+    wrap.setAttribute('role','group');
+    wrap.setAttribute('aria-label',g.label);
+    const lab=document.createElement('p');
+    lab.className='nav-group-label';
+    lab.textContent=g.label;
+    wrap.appendChild(lab);
+    links.forEach(a=>{
+      if(used.has(a))return;
+      const href=a.getAttribute('href')||'';
+      if(g.match(href)){
+        used.add(a);
+        let active=false;
+        if(page==='home'&&(href==='index.php'||href.endsWith('/index.php')||href==='/'||href.endsWith('/')))active=true;
+        if(page!=='home'&&href.includes('page='+page)&&!href.includes('#'))active=true;
+        if(active)a.classList.add('is-active');
+        wrap.appendChild(a);
+      }
+    });
+    if(wrap.querySelectorAll('a').length)frag.appendChild(wrap);
+  });
+  const rest=links.filter(a=>!used.has(a));
+  if(rest.length){
+    const wrap=document.createElement('div');
+    wrap.className='nav-group';
+    const lab=document.createElement('p');
+    lab.className='nav-group-label';
+    lab.textContent='سایر';
+    wrap.appendChild(lab);
+    rest.forEach(a=>wrap.appendChild(a));
+    frag.appendChild(wrap);
+  }
+  menu.innerHTML='';
+  menu.appendChild(frag);
+  menu.dataset.grouped='1';
+
+  if(!document.querySelector('link[href*="nav-settings-polish.css"]')){
+    const l=document.createElement('link');
+    l.rel='stylesheet';
+    l.href='assets/nav-settings-polish.css?v=1';
+    document.head.appendChild(l);
+  }
+})();
