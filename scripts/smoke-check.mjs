@@ -80,7 +80,7 @@ if (!index.includes("if($page==='analytics'): ?>")) fail('Dedicated analytics pa
 if (!index.includes('assets/analytics.css?v=1')) fail('Analytics stylesheet is not versioned.');
 if ((index.match(/class="panel achievement-panel"/g)||[]).length !== 1) fail('Progress panel should exist exactly once and be moved, not duplicated.');
 if (!index.includes('assets/nav-settings-polish.css?v=3')) fail('Navigation CSS cache-buster was not updated.');
-if (index.includes('class="motivation"')) fail('Motivational quote box should not appear on the home dashboard.');
+if (!index.includes('class="motivation"')) fail('Motivational quote box should remain below the home welcome box.');
 const badgeAt = index.indexOf('class="panel achievement-panel"');
 const analyticsTxAt = index.indexOf('class="panel transactions-panel"', badgeAt);
 const analyticsWelcomeAt = index.indexOf('class="welcome analytics-welcome"', badgeAt);
