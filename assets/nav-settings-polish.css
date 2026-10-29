@@ -39,3 +39,7 @@
 .main-nav .submenu-links>a:hover,.main-nav .submenu-links>a:focus-visible{background:var(--panel2);border-color:var(--line);outline:none}
 @media(max-width:520px){.main-nav .nav-submenu>summary{min-height:48px}.main-nav .submenu-links>a{min-height:45px}}
 
+
+/* Active route highlight for nested finance links. */
+.main-nav .submenu-links>a.is-active{background:color-mix(in srgb,var(--amber) 14%,var(--panel2));border-color:color-mix(in srgb,var(--amber) 35%,var(--line));font-weight:700}
+.main-nav .nav-group-finance{padding-bottom:8px}
