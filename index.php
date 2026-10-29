@@ -23,7 +23,8 @@ try {
   if (!in_array('role',$userColumns,true)) $pdo->exec("ALTER TABLE users ADD COLUMN role ENUM('admin','user') NOT NULL DEFAULT 'user'");
   if (!in_array('is_active',$userColumns,true)) $pdo->exec("ALTER TABLE users ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1");
   $pdo->exec("CREATE TABLE IF NOT EXISTS login_attempts (ip_hash CHAR(64) NOT NULL PRIMARY KEY, attempts INT UNSIGNED NOT NULL DEFAULT 0, window_started DATETIME NOT NULL, blocked_until DATETIME NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-  $pdo->exec("UPDATE users SET display_name='' WHERE display_name=username AND username REGEXP '^09[0-9]{9}
+  $pdo->exec("UPDATE users SET display_name='' WHERE display_name=username AND username REGEXP '^09[0-9]{9}$'");
+  $pdo->exec("UPDATE users SET display_name=username WHERE display_name='' AND username NOT REGEXP '^09[0-9]{9}$'");
   if ((int)$pdo->query("SELECT COUNT(*) FROM users WHERE role='admin'")->fetchColumn()===0) $pdo->exec("UPDATE users SET role='admin' WHERE id=(SELECT id FROM (SELECT id FROM users ORDER BY id ASC LIMIT 1) first_user)");
 } catch (Throwable $e) { http_response_code(500); exit('آماده‌سازی امن پایگاه داده ناموفق بود. با پشتیبانی فنی تماس بگیر.'); }
 function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
