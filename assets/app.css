@@ -19,3 +19,12 @@
 .admin-actions{display:flex;gap:6px;align-items:center}.admin-actions select{padding:7px;font-size:11px}
 .logout-form{margin:0}.logout-form button{font-family:inherit}
 @media(max-width:720px){.profile-form{grid-template-columns:1fr}.admin-user{flex-wrap:wrap}.admin-actions{width:100%}.mobile-nav{display:flex;position:fixed;bottom:0;right:0;left:0;z-index:10;justify-content:space-around;padding:10px 8px calc(10px + env(safe-area-inset-bottom));background:#10231df5;border-top:1px solid var(--line);backdrop-filter:blur(12px)}.mobile-nav a{font-size:12px;color:var(--muted)}.container{padding-bottom:90px}}
+
+.jalali-picker{position:fixed;z-index:1000;top:50%;left:50%;transform:translate(-50%,-50%);width:min(340px,calc(100vw - 28px));padding:14px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 80px #0009;color:var(--text)}
+.jalali-picker-head{display:grid;grid-template-columns:38px 1fr 38px;align-items:center;text-align:center;gap:8px;margin-bottom:12px}
+.jalali-picker-head button,.jalali-picker-foot button{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:9px;padding:6px;cursor:pointer}
+.jalali-picker-head strong{font-size:14px}.jalali-weekdays,.jalali-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}
+.jalali-weekdays{font-size:11px;color:var(--muted);margin-bottom:6px}.jalali-days button{border:1px solid transparent;border-radius:9px;aspect-ratio:1;background:transparent;color:var(--text);cursor:pointer;font:inherit;font-size:12px}
+.jalali-days button:hover,.jalali-days button.selected{background:var(--amber);color:var(--bg)}.jalali-days button.outside{color:#738b7a}.jalali-days button.today{border-color:var(--green)}
+.jalali-picker-foot{display:flex;justify-content:space-between;margin-top:12px}.jalali-picker-foot button:first-child{background:var(--amber);color:var(--bg);font-weight:700}
+@media(max-width:500px){.jalali-picker{top:auto;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%)}}
