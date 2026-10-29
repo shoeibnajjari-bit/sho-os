@@ -12,7 +12,7 @@ const worker = read('sw.js');
 const appJs = read('assets/app.js');
 const schema = read('schema.sql');
 
-for (const file of ['index.php', 'assets/app.css', 'assets/app.js', 'assets/nav-settings-polish.css', 'sw.js', 'manifest.webmanifest']) {
+for (const file of ['index.php', 'assets/app.css', 'assets/app.js', 'assets/nav-settings-polish.css', 'assets/analytics.css', 'sw.js', 'manifest.webmanifest']) {
   if (!fs.existsSync(path.join(root, file)) || fs.statSync(path.join(root, file)).size === 0) fail('Required file missing or empty: ' + file);
 }
 
@@ -38,7 +38,7 @@ if (!cacheVersion || registeredVersions[0] !== cacheVersion) fail('Service-worke
 const allowlist = worker.match(/const STATIC_PATHS=new Set\(\[([\s\S]*?)\]\);/)?.[1] || '';
 if (!allowlist) fail('Service-worker static asset allowlist was not found.');
 if (/\.php|index\.html|\/\s*['"]/.test(allowlist)) fail('Service worker must not cache PHP pages or the site root.');
-for (const file of ['/assets/app.css', '/assets/app.js', '/assets/nav-settings-polish.css']) {
+for (const file of ['/assets/app.css', '/assets/app.js', '/assets/nav-settings-polish.css', '/assets/analytics.css']) {
   if (!allowlist.includes(file)) fail('Static asset missing from service-worker allowlist: ' + file);
 }
 
@@ -59,6 +59,12 @@ for(const label of expectedFinanceLabels){
   lastFinanceIndex=pos;
 }
 if (!index.includes('assets/app.js?v=1.11')) fail('Application JS cache-buster was not updated.');
+if (!index.includes("'analytics'")) fail('Analytics route is not allowlisted.');
+if (!index.includes('index.php?page=analytics')) fail('Analytics navigation entry missing.');
+if (!index.includes('analytics-month-chart') || !index.includes('monthlyTrend')) fail('Analytics chart or trend data rendering missing.');
+if (!index.includes("if($page==='analytics'): ?>")) fail('Dedicated analytics page branch missing.');
+if (!index.includes('assets/analytics.css?v=1')) fail('Analytics stylesheet is not versioned.');
+if ((index.match(/class="panel achievement-panel"/g)||[]).length !== 1) fail('Progress panel should exist exactly once and be moved, not duplicated.');
 if (!index.includes('assets/nav-settings-polish.css?v=3')) fail('Navigation CSS cache-buster was not updated.');
 
 if (!index.includes("page=categories") || !index.includes("action\" value=\"add_category")) fail('Category management route/action missing.');
