@@ -58,7 +58,7 @@ for(const label of expectedFinanceLabels){
   if(pos<=lastFinanceIndex)fail('Finance submenu item order is incorrect near: '+label);
   lastFinanceIndex=pos;
 }
-if (!index.includes('assets/app.js?v=1.10')) fail('Application JS cache-buster was not updated.');
+if (!index.includes('assets/app.js?v=1.11')) fail('Application JS cache-buster was not updated.');
 if (!index.includes('assets/nav-settings-polish.css?v=3')) fail('Navigation CSS cache-buster was not updated.');
 
 if (!index.includes("page=categories") || !index.includes("action\" value=\"add_category")) fail('Category management route/action missing.');
