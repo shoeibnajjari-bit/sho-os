@@ -48,6 +48,15 @@ if (!index.includes('rename_category') || !index.includes('delete_category')) fa
 if (!backup.includes("'categories'")) fail('Manual backup must include custom categories.');
 if (!restore.includes("'categories'")) fail('Restore must handle category data.');
 if (!index.includes('category-manager')) fail('Category manager UI missing.');
+if (!index.includes('class="nav-submenu finance-submenu"') || !index.includes('page=market')) fail('Finance submenu or market route missing.');
+if (!index.includes('page=transactions') || !index.includes('page=goals') || !index.includes('page=checks') || !index.includes('page=cards')) fail('Finance submenu is missing a required destination.');
+const market = read('market.php');
+const appJs = read('assets/app.js');
+for (const symbol of ['GOLD_18K_IRR', 'USD_IRR_FREE', 'USDT_IRR', 'BTC_IRR']) if (!market.includes(symbol)) fail('Market proxy missing exact symbol: ' + symbol);
+if (!market.includes('latest-toman.json')) fail('Market proxy is not using the validated current-price JSON source.');
+if (!appJs.includes('GOLD_18K_IRR.json') || !appJs.includes('BTC_USD.json') || !appJs.includes('USDT_USD.json')) fail('Yearly history chart data sources missing.');
+if (!appJs.includes('marketHistoryGrid')) fail('Market history chart UI missing.');
+
 if (!index.includes("!in_array($page,['home','finance','categories'")) fail('Category manager route is not allowlisted.');
 if (process.exitCode) process.exit(process.exitCode);
 console.log('Smoke checks passed: required files, local asset references, no remote bootstrap, and safe/version-aligned PWA cache.');
