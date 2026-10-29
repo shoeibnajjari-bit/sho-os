@@ -20,7 +20,7 @@ if((int)$_FILES['backup_file']['size']<2||(int)$_FILES['backup_file']['size']>5*
 $raw=file_get_contents((string)$_FILES['backup_file']['tmp_name']);
 if($raw===false) restoreFail(400,'خواندن فایل امکان‌پذیر نیست.');
 $data=json_decode($raw,true);
-$tables=['transactions','tasks','budgets','contacts','bank_cards','savings_goals','checks'];
+$requiredTables=['transactions','tasks','budgets','contacts','bank_cards','savings_goals','checks'];$tables=['transactions','tasks','budgets','contacts','bank_cards','savings_goals','checks','categories'];
 if(!is_array($data)||($data['format']??null)!=='madar-backup-v1'||!isset($data['account']['username'])||!isset($data['tables'])||!is_array($data['tables'])) restoreFail(400,'ساختار فایل با قالب پشتیبان مدار سازگار نیست.');
 try {
  $pdo=new PDO('mysql:host='.$config['db_host'].';dbname='.$config['db_name'].';charset=utf8mb4',$config['db_user'],$config['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false]);
@@ -28,7 +28,8 @@ try {
  $u=$pdo->prepare('SELECT username FROM users WHERE id=? AND is_active=1');$u->execute([$userId]);$username=$u->fetchColumn();
  if(!$username) restoreFail(403,'حساب فعال پیدا نشد.');
  if(!hash_equals((string)$username,(string)$data['account']['username'])) restoreFail(403,'این فایل متعلق به همین حساب نیست؛ برای جلوگیری از جایگزینی اشتباه، بازیابی متوقف شد.');
- foreach($tables as $table) if(!array_key_exists($table,$data['tables'])||!is_array($data['tables'][$table])) restoreFail(400,'فایل ناقص است: فهرست '.$table.' وجود ندارد.');
+ foreach($requiredTables as $table) if(!array_key_exists($table,$data['tables'])||!is_array($data['tables'][$table])) restoreFail(400,'فایل ناقص است: فهرست '.$table.' وجود ندارد.');
+ if(!isset($data['tables']['categories'])||!is_array($data['tables']['categories']))$data['tables']['categories']=[];
  foreach($tables as $table) foreach($data['tables'][$table] as $row) if(!is_array($row)) restoreFail(400,'یکی از ردیف‌های فایل پشتیبان معتبر نیست.');
  $pdo->beginTransaction();
  foreach($tables as $table){
