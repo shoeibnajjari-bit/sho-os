@@ -48,3 +48,29 @@ CREATE TABLE IF NOT EXISTS login_attempts (
   window_started DATETIME NOT NULL,
   blocked_until DATETIME NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+CREATE TABLE IF NOT EXISTS checks (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  check_number VARCHAR(80) NOT NULL DEFAULT '',
+  bank_name VARCHAR(100) NOT NULL DEFAULT '',
+  check_type ENUM('received','issued') NOT NULL DEFAULT 'issued',
+  amount BIGINT UNSIGNED NOT NULL,
+  due_date DATE NOT NULL,
+  payee VARCHAR(120) NOT NULL DEFAULT '',
+  status ENUM('pending','cleared','cancelled','bounced') NOT NULL DEFAULT 'pending',
+  notes VARCHAR(500) NOT NULL DEFAULT '',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_checks_user_due(user_id,status,due_date),
+  CONSTRAINT fk_checks_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS backup_snapshots (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  created_at DATETIME NOT NULL,
+  payload MEDIUMBLOB NOT NULL,
+  INDEX idx_backup_user_date(user_id,created_at),
+  CONSTRAINT fk_backup_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
