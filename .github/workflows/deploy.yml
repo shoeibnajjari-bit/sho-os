@@ -27,6 +27,7 @@ jobs:
       - name: Validate PHP, JavaScript and manifest syntax
         run: |
           php -l index.php
+          php -l includes/helpers.php
           php -l export.php
           php -l backup.php
           php -l restore.php
